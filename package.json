@@ -1,0 +1,24 @@
+{
+  "name": "udes-foodpass",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma web para reservar y reclamar almuerzos con ficho digital QR en la cafetería de la UDES.",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "db:levantar": "docker compose up -d",
+    "db:apagar": "docker compose down",
+    "db:migrar": "npm run db:migrar -w backend",
+    "db:seed": "npm run db:seed -w backend",
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "test": "npm test -w backend"
+  }
+}
