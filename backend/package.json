@@ -1,0 +1,18 @@
+{
+  "name": "@udes-foodpass/backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API REST de UDES FoodPass (Node.js + Express + PostgreSQL).",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=../.env src/server.js",
+    "start": "node --env-file-if-exists=../.env src/server.js",
+    "db:migrar": "node --env-file-if-exists=../.env src/db/migrar.js",
+    "db:seed": "node --env-file-if-exists=../.env src/db/seed.js",
+    "test": "vitest run"
+  }
+}

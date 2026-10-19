@@ -1,0 +1,33 @@
+# Base de datos PostgreSQL para desarrollo local de UDES FoodPass.
+#
+#   Encender:  docker compose up -d
+#   Apagar:    docker compose down
+#   Borrar los datos (¡cuidado!):  docker compose down -v
+#
+# Lee las variables POSTGRES_* del archivo .env de la raíz del proyecto.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: udes-foodpass-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-foodpass}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en el archivo .env}
+      POSTGRES_DB: ${POSTGRES_DB:-udes_foodpass}
+      TZ: America/Bogota
+      PGTZ: America/Bogota
+    ports:
+      # Solo accesible desde tu propio computador (127.0.0.1), no desde la red.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - datos_postgres:/var/lib/postgresql/data
+      # Scripts que se ejecutan una sola vez, al crear la base por primera vez.
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  datos_postgres:
