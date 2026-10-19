@@ -1,0 +1,1521 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UDES FoodPass · Wireframes y mockups</title>
+<!--
+  Fuente única de los wireframes y mockups de UDES FoodPass.
+  - Ábrelo en el navegador:  pantallas.html               → mockups (diseño final)
+                             pantallas.html?modo=wireframe → wireframes (estructura + notas)
+  - Las imágenes PNG de docs/diseno/ se generan desde aquí con renderizar.mjs.
+  Datos de ejemplo: nombres, precios y porciones son ficticios.
+-->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --fuente:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  /* Lienzo de presentación */
+  --fondo-lienzo:#D9E1EC; --fondo-tablero:#EEF2F8; --titulo-tablero:#0B2A5B; --borde-tablero:#C9D3E2;
+  /* Identidad UDES FoodPass: azules y blanco */
+  --primario-fuerte:#0B2A5B; --primario:#1446A0; --primario-borde:#BCD0F2; --primario-suave:#E6EEFB; --primario-suave2:#F2F6FD; --anillo:rgba(20,70,160,.28);
+  --fondo:#F3F6FB; --superficie:#FFFFFF; --texto:#13203A; --texto-suave:#52607A; --texto-tenue:#8792A6;
+  --borde:#D6DEEA; --borde-suave:#E7ECF3; --borde-fuerte:#AEBBCF;
+  --exito:#17713F; --exito-suave:#E3F3E9; --exito-borde:#A9D8BC;
+  --alerta:#8A4F00; --alerta-suave:#FFF3DA; --alerta-borde:#F1D196;
+  --peligro:#B42318; --peligro-suave:#FDEBE9; --peligro-borde:#F2B8B2;
+  --sombra:0 1px 2px rgba(16,32,64,.05),0 6px 16px -6px rgba(16,32,64,.10);
+}
+body{font-family:var(--fuente);color:var(--texto);background:var(--fondo-lienzo);-webkit-font-smoothing:antialiased;line-height:1.4;font-size:15px}
+/* ---------- Modo wireframe: misma estructura, sin color ni imágenes ---------- */
+body.wf{
+  --fondo-lienzo:#E4E4E4; --fondo-tablero:#F6F6F6; --titulo-tablero:#1F1F1F; --borde-tablero:#BDBDBD;
+  --primario-fuerte:#3A3A3A; --primario:#3A3A3A; --primario-borde:#9A9A9A; --primario-suave:#EDEDED; --primario-suave2:#F2F2F2; --anillo:rgba(0,0,0,.18);
+  --fondo:#FFFFFF; --superficie:#FFFFFF; --texto:#222; --texto-suave:#666; --texto-tenue:#999;
+  --borde:#A6A6A6; --borde-suave:#CFCFCF; --borde-fuerte:#8A8A8A;
+  --exito:#333; --exito-suave:#EFEFEF; --exito-borde:#9A9A9A;
+  --alerta:#333; --alerta-suave:#EFEFEF; --alerta-borde:#9A9A9A;
+  --peligro:#333; --peligro-suave:#EFEFEF; --peligro-borde:#9A9A9A;
+  --sombra:none;
+}
+body.mk .n, body.mk .notas, body.mk .solo-wf{display:none!important}
+body.wf .solo-mk{display:none!important}
+
+/* ---------- Lienzo ---------- */
+.lienzo-cabecera{padding:32px 32px 0;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.lienzo-cabecera h1{font-size:24px;font-weight:800;color:var(--titulo-tablero)}
+.lienzo-cabecera p{color:var(--texto-suave)}
+.selector-modo{display:flex;gap:8px;margin-left:auto}
+.selector-modo a{padding:8px 14px;border-radius:10px;border:1.5px solid var(--borde-fuerte);text-decoration:none;color:var(--texto);font-weight:700;background:#fff}
+.selector-modo a[aria-current]{background:var(--primario);border-color:var(--primario);color:#fff}
+.lienzo{display:flex;flex-direction:column;align-items:flex-start;gap:40px;padding:32px}
+.tablero{width:max-content;background:var(--fondo-tablero);padding:32px 36px 40px;border-radius:22px}
+.tablero-titulo{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.tablero-titulo h2{font-size:23px;font-weight:800;letter-spacing:-.02em;color:var(--titulo-tablero)}
+.reqs{display:flex;gap:6px}
+.req{font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fff;border:1px solid var(--borde-tablero);color:var(--texto-suave)}
+.tablero-sub{color:var(--texto-suave);font-size:15px;margin-bottom:26px;width:0;min-width:100%;max-width:820px}
+.tablero-cuerpo{display:flex;gap:32px;align-items:flex-start}
+.tablero-cuerpo.columna{flex-direction:column}
+.telefonos{display:flex;gap:28px;align-items:flex-start}
+.telefonos.rejilla-3{display:grid;grid-template-columns:repeat(3,max-content);gap:28px}
+.pie-tel{margin-top:10px;text-align:center;font-size:13px;font-weight:700;color:var(--texto-suave)}
+
+/* ---------- Notas del wireframe ---------- */
+.notas{width:340px;flex:none;background:#fff;border:1.5px solid #BDBDBD;border-radius:14px;padding:18px 20px;font-size:13.5px;line-height:1.5;color:#262626}
+.notas h3{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:#6b6b6b;margin-bottom:12px}
+.notas ol{list-style:none;display:flex;flex-direction:column;gap:10px}
+.notas li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start}
+.notas.ancho{width:100%;max-width:1240px}
+.notas.ancho ol{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 32px}
+.n{display:inline-grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#E8590C;color:#fff;font-size:11.5px;font-weight:800;font-style:normal;line-height:1;vertical-align:middle;flex:none;font-family:var(--fuente)}
+.n.abs{position:absolute;top:-9px;right:-9px;z-index:5}
+.n.abs.izq{right:auto;left:-9px}
+.rel{position:relative}
+
+/* ---------- Teléfono ---------- */
+.tel{width:395px;border:10px solid #0E1A2E;border-radius:46px;background:var(--fondo);overflow:hidden;box-shadow:0 24px 44px -20px rgba(11,27,58,.5);flex:none}
+.tel.mini{width:330px;border-radius:40px}
+.wf .tel{border:2px solid #444;border-radius:30px;box-shadow:none}
+.pantalla{display:flex;flex-direction:column;min-height:800px;position:relative}
+.tel.mini .pantalla{min-height:600px}
+.tel.mini .marca{font-size:15.5px}
+.barra-estado{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 22px 0 28px;font-size:13.5px;font-weight:700;background:var(--primario-fuerte);color:#fff;flex:none}
+.barra-estado .iconos{display:flex;gap:6px;align-items:center}
+.wf .barra-estado{background:#fff;color:#444}
+
+/* ---------- Íconos e ilustraciones ---------- */
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ilus{width:60px;height:60px;border-radius:15px;flex:none;background:var(--tinte,#EEF2F7);display:grid;place-items:center;overflow:hidden}
+.ilus svg{width:56px;height:56px}
+.ilus.peq{width:42px;height:42px;border-radius:11px}
+.ilus.peq svg{width:38px;height:38px}
+.ilus.grande{width:120px;height:120px;border-radius:20px}
+.ilus.grande svg{width:108px;height:108px}
+.wf .ilus,.wf .ph{border:1.5px solid #9A9A9A;background:
+  linear-gradient(to top right,transparent calc(50% - .8px),#AFAFAF calc(50% - .8px),#AFAFAF calc(50% + .8px),transparent calc(50% + .8px)),
+  linear-gradient(to top left,transparent calc(50% - .8px),#AFAFAF calc(50% - .8px),#AFAFAF calc(50% + .8px),transparent calc(50% + .8px)),#fff}
+.wf .ilus svg{visibility:hidden}
+
+/* ---------- Encabezado de la app ---------- */
+.app-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 14px;background:var(--primario-fuerte);color:#fff;flex:none}
+.marca{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.01em;line-height:1.15}
+.marca small{display:block;font-size:11px;font-weight:600;opacity:.78;letter-spacing:.06em;text-transform:uppercase}
+.logo{width:36px;height:36px;border-radius:11px;background:#fff;color:var(--primario-fuerte);display:grid;place-items:center;flex:none}
+.logo .ico{width:21px;height:21px}
+.btn-menu{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 13px;border-radius:11px;border:1.5px solid rgba(255,255,255,.45);color:#fff;font:inherit;font-weight:700;font-size:14.5px;background:transparent;position:relative;white-space:nowrap}
+.wf .app-header,.wf .admin-header{background:#E6E6E6;color:#222;border-bottom:1.5px solid #9A9A9A}
+.wf .btn-menu{border-color:#777;color:#222}
+.wf .logo{border:1.5px solid #777;color:#444}
+
+/* ---------- Contenido ---------- */
+.contenido{padding:16px;display:flex;flex-direction:column;gap:18px}
+.pasos{display:flex;flex-direction:column;gap:7px;position:relative}
+.pasos-texto{display:flex;justify-content:space-between;font-size:13px;color:var(--texto-suave);font-weight:600}
+.pasos-texto b{color:var(--texto);font-weight:800}
+.barras{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.barras i{height:6px;border-radius:3px;background:var(--borde)}
+.barras i.on{background:var(--primario)}
+.saludo{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.saludo h1{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.saludo p{color:var(--texto-suave);font-size:14px;margin-top:2px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;background:var(--primario-suave);color:var(--primario);font-size:12.5px;font-weight:700;white-space:nowrap;position:relative}
+.chip .ico{width:15px;height:15px}
+.chip.exito{background:var(--exito-suave);color:var(--exito)}
+.wf .chip{border:1.5px solid #888;background:#fff;color:#333}
+.titulo-pantalla{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.volver{display:inline-flex;align-items:center;gap:6px;color:var(--primario);font-weight:700;font-size:14.5px}
+.volver .ico{width:18px;height:18px}
+
+.aviso{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--primario-suave);color:var(--primario-fuerte);border:1px solid var(--primario-borde);position:relative}
+.aviso>.ico{width:24px;height:24px}
+.aviso strong{display:block;font-size:15px;font-weight:800}
+.aviso span{font-size:13.5px}
+.aviso.alerta{background:var(--alerta-suave);color:var(--alerta);border-color:var(--alerta-borde)}
+.aviso.exito{background:var(--exito-suave);color:var(--exito);border-color:var(--exito-borde)}
+.aviso.peligro{background:var(--peligro-suave);color:var(--peligro);border-color:var(--peligro-borde)}
+.aviso.prueba{background:var(--superficie);color:var(--texto-suave);border:1.5px dashed var(--borde-fuerte)}
+.aviso.prueba strong{color:var(--texto)}
+.wf .aviso{background:#F4F4F4;border:1.5px solid #9A9A9A;color:#2b2b2b}
+
+.seccion{display:flex;flex-direction:column;gap:10px;position:relative}
+.seccion-cab{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.seccion-cab h2{font-size:17px;font-weight:800}
+.seccion-cab span{font-size:13px;color:var(--texto-suave);font-weight:600}
+.seccion-cab span.ok{color:var(--primario);font-weight:800}
+
+/* ---------- Opciones seleccionables ---------- */
+.opciones{display:flex;flex-direction:column;gap:10px}
+.opciones.dos{display:grid;grid-template-columns:1fr 1fr}
+.opcion{position:relative;display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid var(--borde);border-radius:16px;background:var(--superficie)}
+.opcion.sel{border:3px solid var(--primario);padding:10.5px;background:var(--primario-suave2)}
+.opcion .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.opcion .nombre{font-weight:700;font-size:15.5px}
+.opcion .desc{font-size:13px;color:var(--texto-suave)}
+.opcion .meta{display:flex;gap:10px;align-items:center;margin-top:5px;flex-wrap:wrap}
+.porciones{font-size:12.5px;font-weight:700;color:var(--texto-suave)}
+.porciones.pocas{color:var(--alerta)}
+.marca-sel{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:800;color:var(--primario)}
+.marca-sel .ico{width:15px;height:15px;stroke-width:3}
+.control{width:26px;height:26px;flex:none;border:2px solid var(--borde-fuerte);border-radius:50%;display:grid;place-items:center;background:#fff;color:#fff}
+.control.cuadro{border-radius:8px}
+.control .ico{width:16px;height:16px;stroke-width:3.2}
+.sel .control{background:var(--primario);border-color:var(--primario)}
+.control.deshab{background:var(--borde-suave);border-color:var(--borde)}
+.opcion.agotada{border-style:dashed;background:repeating-linear-gradient(-45deg,var(--superficie) 0 9px,var(--fondo) 9px 18px)}
+.opcion.agotada .nombre,.opcion.agotada .desc{color:var(--texto-suave)}
+.opcion.agotada .ilus svg{filter:grayscale(1);opacity:.5}
+.etiqueta{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:6px;background:var(--borde-suave);color:var(--texto-suave)}
+.etiqueta .ico{width:13px;height:13px;stroke-width:2.6}
+.opcion.tipo{flex-direction:column;align-items:flex-start;gap:4px;padding:14px 14px 13px}
+.opcion.tipo.sel{padding:12.5px 12.5px 11.5px}
+.opcion.tipo .control{position:absolute;top:12px;right:12px}
+.opcion.tipo .nombre{padding-right:30px;line-height:1.2}
+.opcion.tipo .precio{font-size:20px;font-weight:800;color:var(--primario-fuerte);margin-top:4px}
+.wf .opcion.sel{border-color:#1F1F1F;background:#EFEFEF}
+.wf .sel .control{background:#1F1F1F;border-color:#1F1F1F}
+
+/* ---------- Barra inferior de acción ---------- */
+.barra-accion{margin-top:auto;background:var(--superficie);border-top:1px solid var(--borde);padding:12px 16px 20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 -10px 24px -16px rgba(11,27,58,.35);position:relative}
+.resumen-linea{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.resumen-linea .txt{font-size:13px;color:var(--texto-suave);line-height:1.35}
+.resumen-linea .txt b{color:var(--texto);font-size:14px}
+.resumen-linea .monto{font-size:21px;font-weight:800;white-space:nowrap}
+.nota-peq{font-size:12.5px;color:var(--texto-suave);text-align:center;display:flex;gap:6px;justify-content:center;align-items:center}
+.nota-peq .ico{width:15px;height:15px}
+
+/* ---------- Botones y campos ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:52px;padding:0 18px;border-radius:14px;font:inherit;font-size:16px;font-weight:800;border:0;width:100%;white-space:nowrap;position:relative}
+.btn .ico{width:20px;height:20px;stroke-width:2.4}
+.btn-primario{background:var(--primario);color:#fff}
+.btn-secundario{background:var(--superficie);color:var(--primario);border:2px solid var(--primario)}
+.btn-peligro{background:var(--superficie);color:var(--peligro);border:2px solid var(--peligro-borde)}
+.btn-texto{background:none;color:var(--primario);height:auto;padding:6px;font-size:14.5px}
+.btn-texto.peligro{color:var(--peligro)}
+.btn.auto{width:auto}
+.btn.chico{height:42px;font-size:14.5px;border-radius:11px;padding:0 15px}
+.wf .btn-primario{background:#3A3A3A}
+.wf .btn-secundario{border-color:#3A3A3A;color:#222}
+.campo{display:flex;flex-direction:column;gap:6px;position:relative}
+.campo label{font-size:14px;font-weight:700}
+.entrada{display:flex;align-items:center;gap:10px;height:52px;border:1.5px solid var(--borde-fuerte);border-radius:13px;background:#fff;padding:0 14px;font-size:16px;color:var(--texto)}
+.entrada>.ico{color:var(--texto-suave)}
+.entrada .vacia{color:var(--texto-tenue)}
+.entrada .accion{margin-left:auto;display:inline-flex;gap:6px;align-items:center;font-size:14px;font-weight:700;color:var(--primario)}
+.entrada .accion .ico{width:18px;height:18px}
+.entrada.foco{border:2px solid var(--primario);box-shadow:0 0 0 4px var(--anillo)}
+.entrada.mono{font-family:var(--mono);letter-spacing:.06em;font-size:15px}
+.entrada.chica{height:44px;font-size:15px;border-radius:11px}
+.campo .ayuda{font-size:12.5px;color:var(--texto-suave)}
+.campo.error .entrada{border:2px solid var(--peligro)}
+.msg-error{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:600;color:var(--peligro)}
+.msg-error .ico{width:16px;height:16px}
+
+/* ---------- Tarjetas y filas ---------- */
+.tarjeta{background:var(--superficie);border:1px solid var(--borde);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--sombra);position:relative}
+.tarjeta h3{font-size:16px;font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tarjeta h3 a{font-size:14px;color:var(--primario);font-weight:700;text-decoration:none}
+.wf .tarjeta{border:1.5px solid #9A9A9A}
+.filas{display:flex;flex-direction:column}
+.fila{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--borde-suave);font-size:14.5px}
+.fila:last-child{border-bottom:0;padding-bottom:0}
+.fila:first-child{padding-top:0}
+.fila>span{color:var(--texto-suave);flex:none}
+.fila>b{font-weight:700;text-align:right}
+.fila.tachada b{text-decoration:line-through;color:var(--texto-suave);font-weight:600}
+.total{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:16px;background:var(--primario-fuerte);color:#fff;position:relative}
+.total .lbl{font-size:15px;font-weight:700}
+.total small{display:block;font-size:12px;opacity:.78;font-weight:500}
+.total .monto{font-size:28px;font-weight:800;letter-spacing:-.02em}
+.total.exito{background:var(--exito);}
+.wf .total{background:#E6E6E6;color:#222;border:1.5px solid #9A9A9A}
+
+/* ---------- Medios de pago ---------- */
+.opcion.medio{flex-direction:column;align-items:stretch;gap:12px}
+.medio .top{display:flex;align-items:center;gap:12px}
+.icono-medio{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--primario-suave);color:var(--primario);flex:none}
+.icono-medio .ico{width:23px;height:23px}
+.wf .icono-medio{background:#fff;border:1.5px solid #9A9A9A;color:#444}
+.medio .extra{padding-top:12px;border-top:1px dashed var(--borde-fuerte);display:flex;flex-direction:column;gap:8px}
+
+/* ---------- Estados ---------- */
+.estado{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.estado .ico{width:14px;height:14px;stroke-width:3}
+.estado.ok{background:var(--exito-suave);color:var(--exito)}
+.estado.info{background:var(--primario-suave);color:var(--primario)}
+.estado.alerta{background:var(--alerta-suave);color:var(--alerta)}
+.estado.peligro{background:var(--peligro-suave);color:var(--peligro)}
+.estado.neutro{background:var(--borde-suave);color:var(--texto-suave)}
+.wf .estado{background:#fff;border:1.5px solid #777;color:#333}
+
+/* ---------- Ficho QR ---------- */
+.ficho{align-items:center;text-align:center;gap:14px;padding:20px 16px}
+.qr-caja{position:relative;padding:14px;background:#fff;border-radius:20px;border:2px solid var(--borde)}
+.qr-caja svg{width:240px;height:240px;display:block}
+.ph-etiqueta{display:none}
+.wf .qr-caja{width:272px;height:272px;border:1.5px solid #9A9A9A;background:
+  linear-gradient(to top right,transparent calc(50% - .8px),#AFAFAF calc(50% - .8px),#AFAFAF calc(50% + .8px),transparent calc(50% + .8px)),
+  linear-gradient(to top left,transparent calc(50% - .8px),#AFAFAF calc(50% - .8px),#AFAFAF calc(50% + .8px),transparent calc(50% + .8px)),#fff}
+.wf .qr-caja svg{visibility:hidden}
+.wf .ph-etiqueta{display:block;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;padding:6px 10px;font-size:13px;font-weight:700;color:#444;border:1.5px solid #9A9A9A;border-radius:6px;white-space:nowrap}
+.token-lbl{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--texto-suave)}
+.token{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:.08em;color:var(--primario-fuerte)}
+.ayuda-centro{font-size:13px;color:var(--texto-suave);max-width:280px}
+
+/* ---------- Pantallas de estado / error ---------- */
+.estado-pantalla{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:28px 22px}
+.icono-grande{width:80px;height:80px;border-radius:50%;display:grid;place-items:center;background:var(--peligro-suave);color:var(--peligro);margin-bottom:4px;position:relative}
+.icono-grande .ico{width:40px;height:40px;stroke-width:2}
+.icono-grande.alerta{background:var(--alerta-suave);color:var(--alerta)}
+.icono-grande.info{background:var(--primario-suave);color:var(--primario)}
+.icono-grande.ok{background:var(--exito-suave);color:var(--exito)}
+.icono-grande.neutro{background:var(--borde-suave);color:var(--texto-suave)}
+.wf .icono-grande{background:#fff;border:2px solid #777;color:#444}
+.estado-pantalla h2{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+.estado-pantalla p{font-size:14.5px;color:var(--texto-suave)}
+.estado-pantalla p b{color:var(--texto)}
+.estado-pantalla .acciones{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.estado-pantalla .detalle{width:100%;text-align:left}
+
+/* ---------- Menú desplegable ---------- */
+.desplegable{background:var(--superficie);box-shadow:0 22px 34px -14px rgba(11,27,58,.45);position:relative;z-index:2}
+.wf .desplegable{border-bottom:1.5px solid #9A9A9A;box-shadow:none}
+.perfil{display:flex;gap:12px;align-items:center;padding:16px;border-bottom:1px solid var(--borde-suave);position:relative}
+.perfil b{display:block;font-size:16px}
+.perfil span{font-size:13px;color:var(--texto-suave)}
+.avatar{width:46px;height:46px;border-radius:50%;background:var(--primario);color:#fff;display:grid;place-items:center;font-weight:800;font-size:16px;flex:none}
+.avatar.chico{width:36px;height:36px;font-size:13px;background:#fff;color:var(--primario-fuerte)}
+.perfil .avatar{color:#fff;font-size:16px}
+.wf .avatar,.wf .perfil .avatar{background:#fff;border:1.5px solid #777;color:#333}
+.nav-item{display:flex;align-items:center;gap:14px;padding:0 16px 0 14px;height:56px;font-weight:700;font-size:16px;color:var(--texto);border-left:5px solid transparent;position:relative}
+.nav-item .ico{width:22px;height:22px;color:var(--texto-suave)}
+.nav-item.actual{border-left-color:var(--primario);background:var(--primario-suave2);color:var(--primario);font-weight:800}
+.nav-item.actual .ico{color:var(--primario)}
+.nav-item .estado{margin-left:auto}
+.nav-item.salir{color:var(--peligro);border-top:1px solid var(--borde-suave)}
+.nav-item.salir .ico{color:var(--peligro)}
+.atenuado{position:relative;flex:1}
+.atenuado::after{content:"";position:absolute;inset:0;background:rgba(11,27,58,.55)}
+.wf .atenuado::after{background:rgba(0,0,0,.22)}
+
+/* ---------- Escritorio (administrador) ---------- */
+.pc{width:1240px;border-radius:14px;overflow:hidden;background:var(--fondo);border:1px solid var(--borde-tablero);box-shadow:0 26px 50px -26px rgba(11,27,58,.5);flex:none}
+.wf .pc{border:2px solid #444;box-shadow:none}
+.ventana{height:38px;background:#DCE2EB;display:flex;align-items:center;gap:8px;padding:0 14px}
+.ventana i{width:12px;height:12px;border-radius:50%;background:#B7C1D0}
+.ventana .url{margin-left:14px;height:24px;width:420px;background:#fff;border-radius:7px;font-size:12.5px;color:#55617A;display:flex;align-items:center;gap:6px;padding:0 10px}
+.ventana .url .ico{width:13px;height:13px}
+.wf .ventana{background:#EDEDED;border-bottom:1.5px solid #9A9A9A}
+.admin-header{display:flex;align-items:center;gap:30px;padding:0 24px;height:66px;background:var(--primario-fuerte);color:#fff}
+.admin-header nav{display:flex;gap:2px;align-self:stretch}
+.admin-header nav a{display:flex;align-items:center;gap:8px;padding:0 14px;font-size:14.5px;font-weight:600;color:rgba(255,255,255,.8);text-decoration:none;border-bottom:4px solid transparent;border-top:4px solid transparent}
+.admin-header nav a .ico{width:18px;height:18px}
+.admin-header nav a.on{color:#fff;font-weight:800;border-bottom-color:#fff;background:rgba(255,255,255,.09)}
+.wf .admin-header nav a{color:#555}
+.wf .admin-header nav a.on{color:#111;border-bottom-color:#222;background:#fff}
+.admin-header .usuario{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:13.5px;line-height:1.25}
+.admin-header .usuario small{opacity:.78}
+.admin-cuerpo{padding:26px 28px 34px;display:flex;flex-direction:column;gap:20px}
+.titulo-pagina{display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:relative}
+.titulo-pagina h1{font-size:27px;font-weight:800;letter-spacing:-.02em}
+.titulo-pagina p{width:100%;color:var(--texto-suave);margin-top:-8px}
+.titulo-pagina .acciones{margin-left:auto;display:flex;gap:10px}
+.selector-fecha{display:inline-flex;align-items:center;gap:10px;height:42px;padding:0 6px;border:1.5px solid var(--borde-fuerte);border-radius:11px;background:#fff;font-weight:700;font-size:14.5px}
+.selector-fecha .ico{width:18px;height:18px;color:var(--texto-suave)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;position:relative}
+.kpi{background:var(--superficie);border:1px solid var(--borde);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--sombra)}
+.wf .kpi{border:1.5px solid #9A9A9A}
+.kpi .lbl{font-size:13px;color:var(--texto-suave);font-weight:700;display:flex;gap:7px;align-items:center}
+.kpi .lbl .ico{width:17px;height:17px}
+.kpi .valor{font-size:27px;font-weight:800;letter-spacing:-.02em}
+.kpi .valor small{font-size:15px;color:var(--texto-suave);font-weight:600;letter-spacing:0}
+.kpi .sub{font-size:12.5px;color:var(--texto-suave)}
+.rejilla{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start}
+.rejilla.lateral{grid-template-columns:1fr 390px}
+.columna-tarjetas{display:flex;flex-direction:column;gap:20px}
+.tabla{width:100%;border-collapse:collapse;font-size:14.5px}
+.tabla th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--texto-suave);font-weight:800;padding:0 12px 10px;border-bottom:1.5px solid var(--borde)}
+.tabla td{padding:10px 12px;border-bottom:1px solid var(--borde-suave);vertical-align:middle}
+.tabla tr:last-child td{border-bottom:0;padding-bottom:0}
+.tabla th:first-child,.tabla td:first-child{padding-left:0}
+.tabla th:last-child,.tabla td:last-child{padding-right:0}
+.tabla .con-ilus{display:flex;align-items:center;gap:12px;font-weight:700}
+.tabla .suave{color:var(--texto-suave);font-size:13.5px}
+.tabla tr.marcada td{background:var(--primario-suave2)}
+.num{width:90px;height:40px;border:1.5px solid var(--borde-fuerte);border-radius:10px;display:flex;align-items:center;padding:0 12px;font-weight:700;background:#fff;font-variant-numeric:tabular-nums}
+.num.cero{border-color:var(--peligro-borde);color:var(--peligro)}
+.icono-btn{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--borde);display:grid;place-items:center;color:var(--texto-suave);background:#fff}
+.icono-btn .ico{width:18px;height:18px}
+.pestanas{display:flex;gap:4px;border-bottom:1.5px solid var(--borde);position:relative}
+.pestana{padding:12px 16px;font-weight:700;color:var(--texto-suave);border-bottom:3px solid transparent;margin-bottom:-1.5px;display:flex;gap:8px;align-items:center}
+.pestana.on{color:var(--primario);border-bottom-color:var(--primario);font-weight:800}
+.pestana .cuenta{font-size:12px;background:var(--borde-suave);border-radius:999px;padding:1px 8px;color:var(--texto-suave)}
+.interruptor{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:14.5px}
+.interruptor i{width:46px;height:28px;border-radius:999px;background:var(--primario);position:relative;flex:none}
+.interruptor i::after{content:"";position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:#fff}
+.interruptor.apagado i{background:var(--borde-fuerte)}
+.interruptor.apagado i::after{right:auto;left:4px}
+.form-rejilla{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-rejilla .completo{grid-column:1/-1}
+.area{min-height:84px;border:1.5px solid var(--borde-fuerte);border-radius:11px;padding:10px 14px;font-size:15px;background:#fff}
+.progreso{height:12px;border-radius:999px;background:var(--borde-suave);overflow:hidden}
+.progreso i{display:block;height:100%;background:var(--exito);border-radius:999px}
+.wf .progreso i{background:#555}
+.barra-filtros{display:flex;gap:12px;align-items:center}
+.barra-filtros .entrada{flex:1}
+.selector{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 14px;border:1.5px solid var(--borde-fuerte);border-radius:11px;background:#fff;font-weight:600;font-size:14.5px}
+.selector .ico{width:18px;height:18px;color:var(--texto-suave)}
+.pista{font-size:13px;color:var(--texto-suave);display:flex;gap:8px;align-items:flex-start}
+.pista .ico{width:17px;height:17px;margin-top:1px}
+
+/* ---------- Escáner ---------- */
+.camara{position:relative;height:300px;border-radius:20px;background:radial-gradient(circle at 50% 45%,#1E3766,#0A1630);display:grid;place-items:center;overflow:hidden}
+.camara .qr-mini{width:150px;height:150px;padding:9px;background:#fff;border-radius:8px;transform:rotate(-5deg);opacity:.95}
+.camara .qr-mini svg{width:100%;height:100%;display:block}
+.camara .marco{position:absolute;left:50%;top:46%;width:196px;height:196px;transform:translate(-50%,-50%)}
+.esq{position:absolute;width:36px;height:36px;border:4px solid #fff}
+.esq.a{top:0;left:0;border-right:0;border-bottom:0;border-top-left-radius:14px}
+.esq.b{top:0;right:0;border-left:0;border-bottom:0;border-top-right-radius:14px}
+.esq.c{bottom:0;left:0;border-right:0;border-top:0;border-bottom-left-radius:14px}
+.esq.d{bottom:0;right:0;border-left:0;border-top:0;border-bottom-right-radius:14px}
+.linea-escaneo{position:absolute;left:10px;right:10px;top:52%;height:3px;border-radius:2px;background:#6FB5FF;box-shadow:0 0 14px 2px rgba(111,181,255,.8)}
+.camara .leyenda{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#fff;font-size:13.5px;font-weight:600}
+.wf .camara{background:#fff;border:1.5px solid #9A9A9A}
+.wf .camara .qr-mini{visibility:hidden}
+.wf .esq{border-color:#555}
+.wf .linea-escaneo{background:#777;box-shadow:none}
+.wf .camara .leyenda{color:#333}
+.separador{display:flex;align-items:center;gap:12px;color:var(--texto-suave);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.separador::before,.separador::after{content:"";flex:1;height:1px;background:var(--borde)}
+</style>
+</head>
+<body class="mk">
+
+<!-- ===================== Íconos e ilustraciones ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-check-circulo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></symbol>
+  <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5M12 17.3v.2"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.2"/></symbol>
+  <symbol id="i-x-circulo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></symbol>
+  <symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M8.6 16.4a5 5 0 0 1 6.8 0"/><path d="M5.2 12.9a10 10 0 0 1 4.6-2.6"/><path d="M18.8 12.9a10 10 0 0 0-2.2-1.6"/><path d="M2 9.2a15 15 0 0 1 3.9-2.6"/><path d="M22 9.2A15 15 0 0 0 10.7 5"/><path d="M12 20h.01"/></symbol>
+  <symbol id="i-usuario" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-6h4v6"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20.5 14v.01M14 20.5h.01M17.5 20.5H21V17"/></symbol>
+  <symbol id="i-salir" viewBox="0 0 24 24"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M15 7l5 5-5 5"/><path d="M20 12H9"/></symbol>
+  <symbol id="i-tarjeta" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></symbol>
+  <symbol id="i-banco" viewBox="0 0 24 24"><path d="M3 9.5 12 4l9 5.5"/><path d="M4 9.5h16M6 10v7M10 10v7M14 10v7M18 10v7M3 20h18"/></symbol>
+  <symbol id="i-celular" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-escanear" viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M4 12h16"/></symbol>
+  <symbol id="i-cubiertos" viewBox="0 0 24 24"><path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3"/><path d="M17 21V3c-2.2 1.3-3.5 3.9-3.5 7.2V13H17"/></symbol>
+  <symbol id="i-flecha-der" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-flecha-izq" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-ojo" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-ubicacion" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+  <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-editar" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol>
+  <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-basura" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+  <symbol id="i-insignia" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M8.5 13.8 7 21l5-3 5 3-1.5-7.2"/></symbol>
+  <symbol id="i-actualizar" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4.5h-4.5"/></symbol>
+  <symbol id="i-candado" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-correo" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></symbol>
+  <symbol id="i-chev-izq" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-chev-der" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-chev-abajo" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-imagen" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+  <symbol id="i-plato" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></symbol>
+  <symbol id="i-entrega" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></symbol>
+  <symbol id="i-grupo" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14a6.5 6.5 0 0 1 3.5 6"/></symbol>
+
+  <!-- Barra de estado del teléfono -->
+  <symbol id="e-senal" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></symbol>
+  <symbol id="e-wifi" viewBox="0 0 16 12"><path d="M1.5 4.6a9.4 9.4 0 0 1 13 0M4.2 7.4a5.6 5.6 0 0 1 7.6 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="10.2" r="1.5"/></symbol>
+  <symbol id="e-bateria" viewBox="0 0 26 12"><rect x=".75" y=".75" width="21.5" height="10.5" rx="3" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".55"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.6"/><rect x="23.4" y="4" width="2" height="4" rx="1" opacity=".55"/></symbol>
+
+  <!-- Ilustraciones de los platos (datos de ejemplo) -->
+  <symbol id="f-pollo" viewBox="0 0 64 64">
+    <ellipse cx="32" cy="51" rx="22" ry="4" fill="#0B2A5B" opacity=".07"/>
+    <path d="M12 37c0-11 10-19 22-19 10 0 17 6 17 13 0 10-11 17-23 17-9 0-16-4-16-11z" fill="#E3A85F"/>
+    <path d="M20 27l-3 12M28 23l-4 20M36 22l-4 22M44 24l-3 16" stroke="#B87436" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M16 33c2-6 8-10 15-11" stroke="#F4CF95" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <circle cx="47" cy="19" r="3.6" fill="#4FA444"/><circle cx="52.5" cy="22.5" r="2.8" fill="#77C060"/>
+  </symbol>
+  <symbol id="f-res" viewBox="0 0 64 64">
+    <ellipse cx="32" cy="51" rx="22" ry="4" fill="#0B2A5B" opacity=".07"/>
+    <path d="M10 36c1-11 12-19 25-18 11 1 19 8 18 16-1 9-11 15-23 15-12 0-21-5-20-13z" fill="#8E3B2C"/>
+    <path d="M15 33c3-7 11-11 20-10" stroke="#B05A45" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="27" cy="35" r="5.2" fill="none" stroke="#F5E7C9" stroke-width="2.4"/>
+    <circle cx="40" cy="38" r="4.2" fill="none" stroke="#F5E7C9" stroke-width="2.2"/>
+    <circle cx="37" cy="28" r="2.6" fill="#E2483A"/><circle cx="19" cy="40" r="2.3" fill="#E2483A"/><circle cx="46" cy="31" r="2" fill="#E2483A"/>
+  </symbol>
+  <symbol id="f-pescado" viewBox="0 0 64 64">
+    <ellipse cx="32" cy="51" rx="22" ry="4" fill="#0B2A5B" opacity=".07"/>
+    <path d="M8 31c7-10 21-14 33-9l10-7v32l-10-7C29 45 15 41 8 31z" fill="#E9B67F"/>
+    <path d="M19 26l-2 10M27 23l-2 16M35 23l-2 16" stroke="#C78B4F" stroke-width="2.3" stroke-linecap="round"/>
+    <circle cx="13.5" cy="29.5" r="1.7" fill="#7A4A22"/>
+    <path d="M14 45a8.5 8.5 0 0 0 17 0z" fill="#F4D23F"/><path d="M17 45a5.5 5.5 0 0 0 11 0" fill="#FBE68A"/>
+  </symbol>
+  <symbol id="f-arroz" viewBox="0 0 64 64">
+    <ellipse cx="32" cy="47" rx="24" ry="5" fill="#C9D3E0"/>
+    <path d="M12 45c0-12 9-22 20-22s20 10 20 22z" fill="#FFFFFF" stroke="#D3DBE6" stroke-width="1.8"/>
+    <g fill="#DCE3EC"><ellipse cx="24" cy="35" rx="2.6" ry="1.3" transform="rotate(-25 24 35)"/><ellipse cx="31" cy="30" rx="2.6" ry="1.3" transform="rotate(15 31 30)"/><ellipse cx="38" cy="36" rx="2.6" ry="1.3" transform="rotate(-10 38 36)"/><ellipse cx="29" cy="40" rx="2.6" ry="1.3" transform="rotate(30 29 40)"/><ellipse cx="43" cy="41" rx="2.6" ry="1.3" transform="rotate(-30 43 41)"/><ellipse cx="20" cy="42" rx="2.6" ry="1.3"/><ellipse cx="35" cy="43" rx="2.6" ry="1.3" transform="rotate(10 35 43)"/></g>
+  </symbol>
+  <symbol id="f-frijol" viewBox="0 0 64 64">
+    <path d="M9 30h46c0 11-10 20-23 20S9 41 9 30z" fill="#FFFFFF" stroke="#D9C7BC" stroke-width="1.8"/>
+    <ellipse cx="32" cy="30" rx="23" ry="6.5" fill="#6B3222"/>
+    <g fill="#94503A"><ellipse cx="23" cy="29" rx="3" ry="1.7"/><ellipse cx="32" cy="31.5" rx="3" ry="1.7" transform="rotate(20 32 31.5)"/><ellipse cx="40" cy="28.5" rx="3" ry="1.7" transform="rotate(-15 40 28.5)"/><ellipse cx="28" cy="27" rx="2.6" ry="1.5"/><ellipse cx="45" cy="31" rx="2.6" ry="1.5"/></g>
+    <path d="M15 38c4 5 10 7 17 7" stroke="#EADCD3" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="f-maduro" viewBox="0 0 64 64">
+    <ellipse cx="32" cy="51" rx="22" ry="4" fill="#0B2A5B" opacity=".07"/>
+    <g stroke="#B5621B" stroke-width="2"><ellipse cx="21" cy="38" rx="10" ry="6" transform="rotate(-25 21 38)" fill="#E99B30"/><ellipse cx="39" cy="28" rx="10" ry="6" transform="rotate(-25 39 28)" fill="#EDA63F"/><ellipse cx="42" cy="43" rx="9" ry="5.5" transform="rotate(-25 42 43)" fill="#E28F25"/></g>
+    <g fill="#F8CB7A"><ellipse cx="19" cy="36" rx="4" ry="1.6" transform="rotate(-25 19 36)"/><ellipse cx="37" cy="26" rx="4" ry="1.6" transform="rotate(-25 37 26)"/><ellipse cx="40" cy="41" rx="3.6" ry="1.5" transform="rotate(-25 40 41)"/></g>
+  </symbol>
+  <symbol id="f-ensalada" viewBox="0 0 64 64">
+    <path d="M8 34h48c0 10-11 17-24 17S8 44 8 34z" fill="#FFFFFF" stroke="#CFE3CB" stroke-width="1.8"/>
+    <path d="M12 34c1-10 10-16 19-14-1 8-9 15-19 14z" fill="#4FA444"/>
+    <path d="M52 34c-1-10-10-16-19-14 1 8 9 15 19 14z" fill="#7CC36A"/>
+    <path d="M24 34c2-9 8-14 15-13-2 7-8 12-15 13z" fill="#62B556"/>
+    <circle cx="24" cy="33" r="5" fill="#E4503E"/><circle cx="41" cy="33.5" r="4.4" fill="#E4503E"/>
+    <path d="M22.5 31.3h2.4M39.6 31.8h2.2" stroke="#F7A196" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M31 26l5-7M34.5 28l6-6" stroke="#F2973A" stroke-width="2.6" stroke-linecap="round"/>
+  </symbol>
+</defs>
+</svg>
+
+<header class="lienzo-cabecera">
+  <div>
+    <h1>UDES FoodPass · Diseño de pantallas</h1>
+    <p>Usuario en celular (375 px) y administrador en escritorio y celular. Datos de ejemplo.</p>
+  </div>
+  <nav class="selector-modo" aria-label="Modo de visualización">
+    <a href="?modo=wireframe" data-modo="wireframe">Wireframes</a>
+    <a href="?modo=mockup" data-modo="mockup">Mockups</a>
+  </nav>
+</header>
+
+<main class="lienzo">
+
+<!-- ===================================================================== -->
+<!-- 01 · INICIO DE SESIÓN                                                 -->
+<!-- ===================================================================== -->
+<section class="tablero" id="01-inicio-sesion">
+  <div class="tablero-titulo"><h2>01 · Inicio de sesión</h2><div class="reqs"><span class="req">RF01</span><span class="req">RNF03</span></div></div>
+  <p class="tablero-sub">Acceso con correo institucional y contraseña. El sistema reconoce el perfil automáticamente: el usuario no elige su rol. A la derecha, el mismo formulario con un error.</p>
+  <div class="tablero-cuerpo">
+    <div class="telefonos">
+      <div>
+        <div class="tel"><div class="pantalla">
+          <div class="barra-estado"><span>9:16</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <div class="app-header" style="flex-direction:column;align-items:flex-start;gap:14px;padding:26px 22px 30px">
+            <div class="marca rel" style="font-size:22px"><span class="logo" style="width:48px;height:48px;border-radius:14px"><svg class="ico" style="width:28px;height:28px"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Universidad de Santander</small></span><b class="n abs" style="right:-30px">1</b></div>
+            <p style="font-size:16px;opacity:.9;max-width:290px">Reserva tu almuerzo y reclámalo sin hacer fila.</p>
+          </div>
+          <main class="contenido" style="gap:16px;padding:24px 20px">
+            <h1 class="titulo-pantalla">Inicia sesión</h1>
+            <div class="campo">
+              <label>Correo institucional <b class="n">2</b></label>
+              <div class="entrada foco"><svg class="ico"><use href="#i-correo"/></svg><span class="vacia">nombre.apellido@udes.edu.co</span></div>
+            </div>
+            <div class="campo">
+              <label>Contraseña <b class="n">3</b></label>
+              <div class="entrada"><svg class="ico"><use href="#i-candado"/></svg><span class="vacia">Escribe tu contraseña</span><span class="accion"><svg class="ico"><use href="#i-ojo"/></svg>Mostrar</span></div>
+            </div>
+            <button class="btn btn-primario" style="margin-top:6px">Ingresar<b class="n abs">4</b></button>
+            <p class="pista"><svg class="ico"><use href="#i-info"/></svg><span>Tu perfil (estudiante, subsidiado, empleado o administrador) se reconoce automáticamente al ingresar.</span></p>
+          </main>
+          <p class="nota-peq" style="margin-top:auto;padding:18px"><svg class="ico"><use href="#i-ubicacion"/></svg>Cafetería principal · Zona de buses</p>
+        </div></div>
+        <p class="pie-tel">Estado normal</p>
+      </div>
+
+      <div>
+        <div class="tel"><div class="pantalla">
+          <div class="barra-estado"><span>9:16</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <div class="app-header" style="flex-direction:column;align-items:flex-start;gap:14px;padding:26px 22px 30px">
+            <div class="marca" style="font-size:22px"><span class="logo" style="width:48px;height:48px;border-radius:14px"><svg class="ico" style="width:28px;height:28px"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Universidad de Santander</small></span></div>
+            <p style="font-size:16px;opacity:.9;max-width:290px">Reserva tu almuerzo y reclámalo sin hacer fila.</p>
+          </div>
+          <main class="contenido" style="gap:16px;padding:24px 20px">
+            <h1 class="titulo-pantalla">Inicia sesión</h1>
+            <div class="aviso peligro" role="alert"><svg class="ico"><use href="#i-x-circulo"/></svg><div><strong>No pudimos iniciar sesión</strong><span>El correo o la contraseña no son correctos. Revísalos e inténtalo de nuevo.</span></div><b class="n abs">5</b></div>
+            <div class="campo">
+              <label>Correo institucional</label>
+              <div class="entrada"><svg class="ico"><use href="#i-correo"/></svg><span>laura.gomez@udes.edu.co</span></div>
+            </div>
+            <div class="campo error">
+              <label>Contraseña</label>
+              <div class="entrada"><svg class="ico"><use href="#i-candado"/></svg><span>••••••••••</span><span class="accion"><svg class="ico"><use href="#i-ojo"/></svg>Mostrar</span></div>
+            </div>
+            <button class="btn btn-primario" style="margin-top:6px">Ingresar</button>
+            <p class="pista"><svg class="ico"><use href="#i-info"/></svg><span>Solo se aceptan correos <b>@udes.edu.co</b>.</span></p>
+          </main>
+          <p class="nota-peq" style="margin-top:auto;padding:18px"><svg class="ico"><use href="#i-ubicacion"/></svg>Cafetería principal · Zona de buses</p>
+        </div></div>
+        <p class="pie-tel">Error de credenciales</p>
+      </div>
+    </div>
+
+    <aside class="notas">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>Nombre del sistema y propósito en una frase. <b>No hay selector de rol</b>: el backend lo deduce del usuario (RF01).</span></li>
+        <li><b class="n">2</b><span>Campo de correo con teclado de correo (<code>type="email"</code>). Solo dominio <code>@udes.edu.co</code>.</span></li>
+        <li><b class="n">3</b><span>Contraseña con botón "Mostrar", accesible con teclado. Viaja por HTTPS y se guarda cifrada con bcrypt (RNF03).</span></li>
+        <li><b class="n">4</b><span>Botón con verbo claro, de 52 px de alto para tocar con el dedo.</span></li>
+        <li><b class="n">5</b><span>Error genérico: no revela si falló el correo o la contraseña (seguridad). Se anuncia a lectores de pantalla (<code>role="alert"</code>).</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 02 · MENÚ DEL DÍA                                                     -->
+<!-- ===================================================================== -->
+<section class="tablero" id="02-menu-del-dia">
+  <div class="tablero-titulo"><h2>02 · Menú del día</h2><div class="reqs"><span class="req">RF03</span><span class="req">RF04</span><span class="req">RF05</span><span class="req">RNF04</span></div></div>
+  <p class="tablero-sub">Paso 1 de 3. Un estudiante regular elige almuerzo completo, una proteína y hasta dos acompañamientos. La hora límite y las porciones siempre están a la vista.</p>
+  <div class="tablero-cuerpo">
+    <div class="tel"><div class="pantalla">
+      <div class="barra-estado"><span>9:18</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+      <header class="app-header">
+        <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
+        <button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú<b class="n abs">1</b></button>
+      </header>
+      <main class="contenido">
+        <div class="pasos">
+          <div class="pasos-texto"><b>Paso 1 de 3 · Elige tu almuerzo</b><span>Luego: pago y ficho</span></div>
+          <div class="barras"><i class="on"></i><i></i><i></i></div>
+          <b class="n abs izq" style="top:-12px">2</b>
+        </div>
+        <div class="saludo">
+          <div><h1>Hola, Laura</h1><p>Lunes 19 de octubre</p></div>
+          <span class="chip"><svg class="ico"><use href="#i-usuario"/></svg>Estudiante regular</span>
+        </div>
+        <div class="aviso"><svg class="ico"><use href="#i-reloj"/></svg><div><strong>Reservas hasta las 10:30&nbsp;a.&nbsp;m.</strong><span>Faltan 1 h 12 min · hora de Colombia</span></div><b class="n abs">3</b></div>
+
+        <section class="seccion">
+          <div class="seccion-cab"><h2>1. Tipo de almuerzo</h2></div>
+          <div class="opciones dos">
+            <div class="opcion tipo sel">
+              <span class="control"><svg class="ico"><use href="#i-check"/></svg></span>
+              <span class="nombre">Almuerzo completo</span>
+              <span class="desc">Sopa, proteína, 2 acompañamientos y jugo</span>
+              <span class="precio">$12.000</span>
+              <span class="marca-sel"><svg class="ico"><use href="#i-check"/></svg>Seleccionado</span>
+              <b class="n abs izq">4</b>
+            </div>
+            <div class="opcion tipo">
+              <span class="control"></span>
+              <span class="nombre">Medio almuerzo</span>
+              <span class="desc">Proteína, 1 acompañamiento y jugo</span>
+              <span class="precio">$8.000</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="seccion">
+          <div class="seccion-cab"><h2>2. Proteína</h2><span>Elige 1</span></div>
+          <div class="opciones">
+            <div class="opcion sel">
+              <span class="ilus" style="--tinte:#FFF1DE"><svg viewBox="0 0 64 64" role="img" aria-label="Pechuga a la plancha"><use href="#f-pollo"/></svg></span>
+              <span class="info"><span class="nombre">Pechuga a la plancha</span><span class="desc">Con especias de la casa</span><span class="meta"><span class="porciones">Quedan 42</span><span class="marca-sel"><svg class="ico"><use href="#i-check"/></svg>Seleccionado</span></span></span>
+              <span class="control"><svg class="ico"><use href="#i-check"/></svg></span>
+              <b class="n abs">6</b>
+            </div>
+            <div class="opcion">
+              <span class="ilus" style="--tinte:#FCE6E2"><svg viewBox="0 0 64 64" role="img" aria-label="Carne en bistec"><use href="#f-res"/></svg></span>
+              <span class="info"><span class="nombre">Carne en bistec</span><span class="desc">Res en salsa criolla</span><span class="meta"><span class="porciones">Quedan 18</span></span></span>
+              <span class="control"></span>
+            </div>
+            <div class="opcion">
+              <span class="ilus" style="--tinte:#E4F0FB"><svg viewBox="0 0 64 64" role="img" aria-label="Filete de tilapia"><use href="#f-pescado"/></svg></span>
+              <span class="info"><span class="nombre">Filete de tilapia</span><span class="desc">A la plancha con limón</span><span class="meta"><span class="porciones pocas">¡Quedan 3!</span></span></span>
+              <span class="control"></span>
+              <b class="n abs">5</b>
+            </div>
+          </div>
+        </section>
+
+        <section class="seccion">
+          <div class="seccion-cab"><h2>3. Acompañamientos</h2><span class="ok">2 de 2 elegidos <b class="n">8</b></span></div>
+          <div class="opciones">
+            <div class="opcion sel">
+              <span class="ilus" style="--tinte:#EDF1F6"><svg viewBox="0 0 64 64" role="img" aria-label="Arroz blanco"><use href="#f-arroz"/></svg></span>
+              <span class="info"><span class="nombre">Arroz blanco</span><span class="meta"><span class="porciones">Quedan 60</span><span class="marca-sel"><svg class="ico"><use href="#i-check"/></svg>Seleccionado</span></span></span>
+              <span class="control cuadro"><svg class="ico"><use href="#i-check"/></svg></span>
+            </div>
+            <div class="opcion">
+              <span class="ilus" style="--tinte:#F5E8E1"><svg viewBox="0 0 64 64" role="img" aria-label="Frijoles"><use href="#f-frijol"/></svg></span>
+              <span class="info"><span class="nombre">Frijoles</span><span class="meta"><span class="porciones">Quedan 35</span></span></span>
+              <span class="control cuadro"></span>
+            </div>
+            <div class="opcion agotada" aria-disabled="true">
+              <span class="ilus" style="--tinte:#FFF3D6"><svg viewBox="0 0 64 64" role="img" aria-label="Maduro frito"><use href="#f-maduro"/></svg></span>
+              <span class="info"><span class="nombre">Maduro frito</span><span class="meta"><span class="etiqueta"><svg class="ico"><use href="#i-x-circulo"/></svg>Agotado</span></span></span>
+              <span class="control cuadro deshab"></span>
+              <b class="n abs">7</b>
+            </div>
+            <div class="opcion sel">
+              <span class="ilus" style="--tinte:#E5F3E2"><svg viewBox="0 0 64 64" role="img" aria-label="Ensalada fresca"><use href="#f-ensalada"/></svg></span>
+              <span class="info"><span class="nombre">Ensalada fresca</span><span class="meta"><span class="porciones">Quedan 25</span><span class="marca-sel"><svg class="ico"><use href="#i-check"/></svg>Seleccionado</span></span></span>
+              <span class="control cuadro"><svg class="ico"><use href="#i-check"/></svg></span>
+            </div>
+          </div>
+        </section>
+      </main>
+      <div class="barra-accion">
+        <div class="resumen-linea"><span class="txt"><b>Almuerzo completo</b><br>Pechuga · Arroz blanco · Ensalada fresca</span><span class="monto">$12.000</span></div>
+        <button class="btn btn-primario">Continuar al pago<svg class="ico"><use href="#i-flecha-der"/></svg><b class="n abs">9</b></button>
+      </div>
+    </div></div>
+
+    <aside class="notas">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>Encabezado fijo con botón "Menú" (ícono + texto). Abre el menú desplegable (pantalla 03).</span></li>
+        <li><b class="n">2</b><span>Indicador de pasos: la reserva completa toma <b>3 pasos</b> (RNF04).</span></li>
+        <li><b class="n">3</b><span>Hora límite siempre visible, con cuenta regresiva en hora de Colombia (RF04). A 15 min del cierre cambia a color de aviso.</span></li>
+        <li><b class="n">4</b><span>El precio del tipo de almuerzo lo envía el backend; el frontend no calcula el total.</span></li>
+        <li><b class="n">5</b><span>Porciones restantes por opción (RF03). Con pocas porciones se resalta "¡Quedan 3!".</span></li>
+        <li><b class="n">6</b><span>Lo seleccionado se marca con <b>borde grueso + ícono ✓ + texto "Seleccionado"</b>, no solo con color (WCAG).</span></li>
+        <li><b class="n">7</b><span>Opción agotada: deshabilitada, con fondo rayado y la palabra "Agotado".</span></li>
+        <li><b class="n">8</b><span>Contador según el máximo de acompañamientos del tipo de almuerzo (propuesta: 2 completo / 1 medio, <i>pendiente de confirmar</i>).</span></li>
+        <li><b class="n">9</b><span>El botón dice "Continuar al pago": deja claro que todavía no se confirma nada. Para el subsidiado dice "Continuar".</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 03 · MENÚ DE NAVEGACIÓN                                               -->
+<!-- ===================================================================== -->
+<section class="tablero" id="03-menu-navegacion">
+  <div class="tablero-titulo"><h2>03 · Menú desplegable</h2><div class="reqs"><span class="req">RF01</span><span class="req">WCAG 2.2</span></div></div>
+  <p class="tablero-sub">El encabezado es el mismo en todas las pantallas del usuario. El menú se abre sobre el contenido y muestra quién inició sesión y con qué perfil.</p>
+  <div class="tablero-cuerpo">
+    <div class="tel"><div class="pantalla">
+      <div class="barra-estado"><span>9:18</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+      <header class="app-header">
+        <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
+        <button class="btn-menu" aria-expanded="true"><svg class="ico"><use href="#i-cerrar"/></svg>Cerrar</button>
+      </header>
+      <nav class="desplegable" aria-label="Menú principal">
+        <div class="perfil"><span class="avatar">LG</span><div><b>Laura Gómez</b><span>Estudiante regular · laura.gomez@udes.edu.co</span></div><b class="n abs">1</b></div>
+        <div class="nav-item actual" aria-current="page"><svg class="ico"><use href="#i-casa"/></svg>Inicio<b class="n abs">2</b></div>
+        <div class="nav-item"><svg class="ico"><use href="#i-lista"/></svg>Mis reservas</div>
+        <div class="nav-item"><svg class="ico"><use href="#i-qr"/></svg>Mi Ficho<span class="estado ok"><svg class="ico"><use href="#i-check"/></svg>Activo</span><b class="n abs">3</b></div>
+        <div class="nav-item salir"><svg class="ico"><use href="#i-salir"/></svg>Cerrar sesión<b class="n abs">4</b></div>
+      </nav>
+      <div class="atenuado">
+        <main class="contenido">
+          <div class="saludo"><div><h1>Hola, Laura</h1><p>Lunes 19 de octubre</p></div><span class="chip"><svg class="ico"><use href="#i-usuario"/></svg>Estudiante regular</span></div>
+          <div class="aviso"><svg class="ico"><use href="#i-reloj"/></svg><div><strong>Reservas hasta las 10:30&nbsp;a.&nbsp;m.</strong><span>Faltan 1 h 12 min</span></div></div>
+          <div class="opciones dos"><div class="opcion tipo" style="height:130px"></div><div class="opcion tipo" style="height:130px"></div></div>
+          <div class="opcion" style="height:86px"></div>
+          <div class="opcion" style="height:86px"></div>
+        </main>
+      </div>
+    </div></div>
+    <aside class="notas">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>Nombre, perfil y correo del usuario autenticado, tal como los devuelve <code>GET /api/auth/me</code>.</span></li>
+        <li><b class="n">2</b><span>La página actual se marca con barra lateral + negrita + <code>aria-current</code>, no solo con color.</span></li>
+        <li><b class="n">3</b><span>"Mi Ficho" avisa si hay un ficho activo para hoy.</span></li>
+        <li><b class="n">4</b><span>"Cerrar sesión" va separado para evitar toques accidentales.</span></li>
+        <li><b class="n">·</b><span>Se cierra con Esc, con "Cerrar" o tocando fuera. Mientras está abierto, el foco del teclado queda dentro del menú.</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 04 · RESUMEN Y PAGO                                                   -->
+<!-- ===================================================================== -->
+<section class="tablero" id="04-resumen-pago">
+  <div class="tablero-titulo"><h2>04 · Resumen y pago</h2><div class="reqs"><span class="req">RF09</span><span class="req">RF10</span><span class="req">RNF05</span></div></div>
+  <p class="tablero-sub">Paso 2 de 3 para estudiante regular y empleado UDES. El total lo calcula el backend. Al elegir un medio de pago se despliegan solo los datos que ese medio necesita.</p>
+  <div class="tablero-cuerpo">
+    <div class="tel"><div class="pantalla">
+      <div class="barra-estado"><span>9:19</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+      <header class="app-header">
+        <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
+        <button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button>
+      </header>
+      <main class="contenido">
+        <div class="pasos">
+          <div class="pasos-texto"><b>Paso 2 de 3 · Revisa y paga</b><span>Luego: tu ficho</span></div>
+          <div class="barras"><i class="on"></i><i class="on"></i><i></i></div>
+        </div>
+        <span class="volver rel"><svg class="ico"><use href="#i-flecha-izq"/></svg>Cambiar mi selección<b class="n abs" style="right:-30px">1</b></span>
+
+        <div class="tarjeta">
+          <h3>Tu pedido <span class="chip"><svg class="ico"><use href="#i-calendario"/></svg>Hoy, lun 19 oct</span></h3>
+          <div class="filas">
+            <div class="fila"><span>Almuerzo</span><b>Completo</b></div>
+            <div class="fila"><span>Proteína</span><b>Pechuga a la plancha</b></div>
+            <div class="fila"><span>Acompañamientos</span><b>Arroz blanco<br>Ensalada fresca</b></div>
+            <div class="fila"><span>Reclamo</span><b>Cafetería principal<br>Zona de buses</b></div>
+          </div>
+        </div>
+
+        <div class="total"><div><span class="lbl">Total a pagar</span><small>Calculado por el sistema</small></div><span class="monto">$12.000</span><b class="n abs">2</b></div>
+
+        <section class="seccion">
+          <div class="seccion-cab"><h2>Medio de pago</h2><b class="n">3</b></div>
+          <div class="opciones">
+            <div class="opcion medio sel">
+              <div class="top">
+                <span class="icono-medio"><svg class="ico"><use href="#i-celular"/></svg></span>
+                <span class="info"><span class="nombre">Nequi</span><span class="desc">Apruebas el pago en tu app</span></span>
+                <span class="control"><svg class="ico"><use href="#i-check"/></svg></span>
+              </div>
+              <div class="extra">
+                <div class="campo"><label>Número de celular Nequi</label><div class="entrada chica foco"><span>300 123 4567</span></div><span class="ayuda">Te llegará una solicitud de pago a este número.</span></div>
+              </div>
+            </div>
+            <div class="opcion medio">
+              <div class="top">
+                <span class="icono-medio"><svg class="ico"><use href="#i-banco"/></svg></span>
+                <span class="info"><span class="nombre">PSE</span><span class="desc">Débito desde tu cuenta bancaria</span></span>
+                <span class="control"></span>
+              </div>
+            </div>
+            <div class="opcion medio">
+              <div class="top">
+                <span class="icono-medio"><svg class="ico"><use href="#i-tarjeta"/></svg></span>
+                <span class="info"><span class="nombre">Tarjeta</span><span class="desc">Crédito o débito</span></span>
+                <span class="control"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="aviso prueba"><svg class="ico"><use href="#i-escudo"/></svg><div><strong>Entorno de pruebas</strong><span>No se cobra dinero real.</span></div><b class="n abs">4</b></div>
+      </main>
+      <div class="barra-accion">
+        <button class="btn btn-primario">Pagar $12.000<b class="n abs">5</b></button>
+        <p class="nota-peq"><svg class="ico"><use href="#i-candado"/></svg>Conexión segura · Reintentar nunca cobra dos veces</p>
+      </div>
+    </div></div>
+    <aside class="notas">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>Volver al paso 1 conserva la selección. No hay pasos extra.</span></li>
+        <li><b class="n">2</b><span>El total viene de <code>crearReserva()</code> y se calcula en el backend con <code>tipo_almuerzo.precio</code>. El frontend solo lo muestra.</span></li>
+        <li><b class="n">3</b><span>Nequi, PSE o tarjeta (RF09). Al elegir uno se despliegan solo sus datos: PSE pide banco y tipo de persona; tarjeta usa el formulario de la pasarela. <b>No se guardan datos de tarjeta.</b></span></li>
+        <li><b class="n">4</b><span>Aviso visible de sandbox mientras no exista una pasarela real.</span></li>
+        <li><b class="n">5</b><span>El botón muestra el monto. Envía <code>Idempotency-Key</code>: un doble toque o un reintento no cobra dos veces (RNF05). Mientras procesa se deshabilita y dice "Procesando pago…".</span></li>
+        <li><b class="n">·</b><span>Resultado inmediato (RF10): si se aprueba, va a "Mi Ficho" (06); si se rechaza, a "Pago rechazado" (08).</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 05 · RESUMEN SUBSIDIADO                                               -->
+<!-- ===================================================================== -->
+<section class="tablero" id="05-resumen-subsidiado">
+  <div class="tablero-titulo"><h2>05 · Resumen con subsidio</h2><div class="reqs"><span class="req">RF06</span><span class="req">RNF04</span></div></div>
+  <p class="tablero-sub">Paso 2 de 3 para el estudiante subsidiado. No hay medios de pago: el backend verifica el beneficio diario y la reserva se confirma con total $0.</p>
+  <div class="tablero-cuerpo">
+    <div class="tel"><div class="pantalla">
+      <div class="barra-estado"><span>8:42</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+      <header class="app-header">
+        <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
+        <button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button>
+      </header>
+      <main class="contenido">
+        <div class="pasos">
+          <div class="pasos-texto"><b>Paso 2 de 3 · Confirma tu reserva</b><span>Luego: tu ficho</span></div>
+          <div class="barras"><i class="on"></i><i class="on"></i><i></i></div>
+        </div>
+        <div class="saludo" style="flex-direction:column;gap:12px">
+          <span class="volver"><svg class="ico"><use href="#i-flecha-izq"/></svg>Cambiar mi selección</span>
+          <span class="chip exito"><svg class="ico"><use href="#i-insignia"/></svg>Estudiante subsidiado<b class="n abs">1</b></span>
+        </div>
+
+        <div class="tarjeta">
+          <h3>Tu pedido <span class="chip"><svg class="ico"><use href="#i-calendario"/></svg>Hoy, lun 19 oct</span></h3>
+          <div class="filas">
+            <div class="fila"><span>Almuerzo</span><b>Completo</b></div>
+            <div class="fila"><span>Proteína</span><b>Carne en bistec</b></div>
+            <div class="fila"><span>Acompañamientos</span><b>Arroz blanco<br>Frijoles</b></div>
+            <div class="fila"><span>Reclamo</span><b>Cafetería principal<br>Zona de buses</b></div>
+          </div>
+        </div>
+
+        <div class="tarjeta" style="border-color:var(--exito-borde)">
+          <h3 style="color:var(--exito)"><span style="display:flex;gap:8px;align-items:center"><svg class="ico"><use href="#i-check-circulo"/></svg>Subsidio aplicado</span><b class="n">2</b></h3>
+          <div class="filas">
+            <div class="fila tachada"><span>Valor del almuerzo</span><b>$12.000</b></div>
+            <div class="fila"><span>Subsidio UDES</span><b style="color:var(--exito)">−$12.000</b></div>
+          </div>
+          <div class="total exito"><div><span class="lbl">Total</span><small>No necesitas pagar</small></div><span class="monto">$0</span><b class="n abs">3</b></div>
+          <p class="pista"><svg class="ico"><use href="#i-info"/></svg><span>Beneficio diario disponible: <b>1 de 1</b>. Puedes usar un subsidio por día.</span></p>
+        </div>
+      </main>
+      <div class="barra-accion">
+        <button class="btn btn-primario"><svg class="ico"><use href="#i-check"/></svg>Confirmar reserva<b class="n abs">4</b></button>
+        <p class="nota-peq">Recibirás tu ficho QR en el siguiente paso.</p>
+      </div>
+    </div></div>
+    <aside class="notas">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>El perfil lo informa el backend. El usuario no puede "activar" el subsidio por su cuenta.</span></li>
+        <li><b class="n">2</b><span><code>validarSubsidio()</code> en <code>ReservaService</code>: beneficio vigente y sin usar hoy (RF06). <b>No se crea ningún pago.</b></span></li>
+        <li><b class="n">3</b><span>"Subsidio aplicado, total $0", con desglose para que se entienda por qué.</span></li>
+        <li><b class="n">4</b><span>"Confirmar reserva" reemplaza a "Pagar". El flujo sigue siendo de 3 pasos.</span></li>
+        <li><b class="n">·</b><span>Si el subsidio ya se usó o no está vigente, se muestra "Subsidio no disponible" (08).</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 06 · MI FICHO                                                         -->
+<!-- ===================================================================== -->
+<section class="tablero" id="06-mi-ficho">
+  <div class="tablero-titulo"><h2>06 · Mi Ficho</h2><div class="reqs"><span class="req">RF07</span><span class="req">RF10</span></div></div>
+  <p class="tablero-sub">Paso 3 de 3. Se muestra apenas el pago es aprobado o el subsidio se aplica. Es la misma pantalla de "Mi Ficho" en el menú.</p>
+  <div class="tablero-cuerpo">
+    <div class="tel"><div class="pantalla">
+      <div class="barra-estado"><span>9:20</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+      <header class="app-header">
+        <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
+        <button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button>
+      </header>
+      <main class="contenido">
+        <div class="pasos">
+          <div class="pasos-texto"><b>Paso 3 de 3 · ¡Listo!</b><span>Reserva completa</span></div>
+          <div class="barras"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        </div>
+        <div class="aviso exito"><svg class="ico"><use href="#i-check-circulo"/></svg><div><strong>Reserva confirmada</strong><span>Pago aprobado · Nequi · $12.000</span></div><b class="n abs">1</b></div>
+
+        <div class="tarjeta ficho">
+          <h3 style="width:100%">Mi Ficho <span class="estado alerta"><svg class="ico"><use href="#i-alerta"/></svg>Uso único</span></h3>
+          <div class="qr-caja" role="img" aria-label="Código QR del ficho">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 21" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h21v21H0z"/><path stroke="#0B1B3A" d="M0 0.5h7m1 0h5m1 0h7M0 1.5h1m5 0h1m1 0h1m3 0h1m1 0h1m5 0h1M0 2.5h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m1 0h3m1 0h1M0 3.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h1m1 0h3m1 0h1M0 4.5h1m1 0h3m1 0h1m2 0h3m2 0h1m1 0h3m1 0h1M0 5.5h1m5 0h1m7 0h1m5 0h1M0 6.5h7m1 0h1m1 0h1m1 0h1m1 0h7M8 7.5h1m1 0h2M0 8.5h1m1 0h2m1 0h3m6 0h1m2 0h1m1 0h2M1 9.5h1m1 0h2m3 0h2m2 0h4m2 0h3M2 10.5h2m2 0h5m1 0h1m6 0h1M0 11.5h1m4 0h1m2 0h4m1 0h1m1 0h1m1 0h1m1 0h1M1 12.5h1m1 0h5m3 0h2m2 0h2m1 0h2M8 13.5h1m5 0h1m1 0h2m1 0h2M0 14.5h7m1 0h1m1 0h1m3 0h2m1 0h4M0 15.5h1m5 0h1m1 0h2m2 0h1m4 0h1m1 0h1M0 16.5h1m1 0h3m1 0h1m2 0h4m1 0h1m1 0h2M0 17.5h1m1 0h3m1 0h1m1 0h1m1 0h2m5 0h3M0 18.5h1m1 0h3m1 0h1m1 0h1m3 0h3m2 0h1M0 19.5h1m5 0h1m2 0h1m2 0h1m2 0h4M0 20.5h7m1 0h1m1 0h1m2 0h3m2 0h2"/></svg>
+            <span class="ph-etiqueta">Código QR (solo el token)</span>
+            <b class="n abs">2</b>
+          </div>
+          <div class="rel"><div class="token-lbl">Token</div><div class="token">7K3Q-9XWA-2M4D-H8PN</div><b class="n abs" style="right:-28px">3</b></div>
+          <p class="ayuda-centro">Muéstralo en la caja de la cafetería. Si la cámara no lo lee, dicta el token.</p>
+        </div>
+
+        <div class="tarjeta">
+          <div class="filas">
+            <div class="fila"><span>Fecha</span><b>Lunes 19 de octubre de 2026</b></div>
+            <div class="fila"><span>Almuerzo</span><b>Completo<br>Pechuga a la plancha<br>Arroz blanco, Ensalada fresca</b></div>
+            <div class="fila"><span>Lugar de reclamo</span><b>Cafetería principal<br>Zona de buses</b></div>
+            <div class="fila"><span>Válido hasta</span><b>Hoy, 11:59&nbsp;p.&nbsp;m.</b></div>
+          </div>
+          <b class="n abs">4</b>
+        </div>
+
+        <div class="aviso alerta"><svg class="ico"><use href="#i-alerta"/></svg><div><strong>Ficho de uso único</strong><span>Deja de servir apenas lo escanean en la entrega. No compartas capturas.</span></div><b class="n abs">5</b></div>
+
+        <button class="btn btn-secundario">Ver mis reservas</button>
+        <button class="btn btn-texto peligro">Cancelar reserva<b class="n abs" style="right:70px">6</b></button>
+      </main>
+    </div></div>
+    <aside class="notas">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>Resultado de la transacción con ícono + texto (RF10). Para el subsidiado dice "Subsidio aplicado · $0".</span></li>
+        <li><b class="n">2</b><span>QR grande (240 px) generado por el backend con <code>generarFichoQR()</code>. Contiene <b>solo el token</b>, nunca datos personales (regla 10).</span></li>
+        <li><b class="n">3</b><span>Token legible para escribirlo a mano si la cámara falla. El formato final se define en la Fase 2.</span></li>
+        <li><b class="n">4</b><span>Fecha, pedido, lugar de reclamo y vencimiento: el ficho expira al final del día del menú.</span></li>
+        <li><b class="n">5</b><span>Aviso "Ficho de uso único" exigido por el documento.</span></li>
+        <li><b class="n">6</b><span>Cancelar solo antes de la hora límite (<i>regla pendiente de confirmar</i>). Pide confirmación antes de cancelar.</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 07 · MIS RESERVAS                                                     -->
+<!-- ===================================================================== -->
+<section class="tablero" id="07-mis-reservas">
+  <div class="tablero-titulo"><h2>07 · Mis reservas</h2><div class="reqs"><span class="req">RF07</span><span class="req">RF10</span></div></div>
+  <p class="tablero-sub">Historial del usuario con el estado de cada reserva y acceso directo al ficho vigente.</p>
+  <div class="tablero-cuerpo">
+    <div class="tel"><div class="pantalla">
+      <div class="barra-estado"><span>9:25</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+      <header class="app-header">
+        <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
+        <button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button>
+      </header>
+      <main class="contenido">
+        <h1 class="titulo-pantalla">Mis reservas</h1>
+
+        <div class="tarjeta" style="border:2px solid var(--primario-borde)">
+          <div class="saludo" style="align-items:center"><span class="token-lbl">Hoy · lun 19 oct</span><span class="estado ok"><svg class="ico"><use href="#i-check"/></svg>Confirmada</span></div>
+          <div><b>Almuerzo completo</b><p class="pista">Pechuga a la plancha · Arroz blanco · Ensalada fresca</p></div>
+          <div class="saludo" style="align-items:center"><span class="pista">Nequi · $12.000</span><span class="volver">Ver ficho<svg class="ico"><use href="#i-flecha-der"/></svg></span></div>
+          <b class="n abs">1</b>
+        </div>
+
+        <div class="tarjeta">
+          <div class="saludo" style="align-items:center"><span class="token-lbl">Vie 16 oct</span><span class="estado info"><svg class="ico"><use href="#i-entrega"/></svg>Entregada</span></div>
+          <div><b>Medio almuerzo</b><p class="pista">Carne en bistec · Frijoles</p></div>
+          <span class="pista">PSE · $8.000 · Entregado a las 12:31&nbsp;p.&nbsp;m.</span>
+          <b class="n abs">2</b>
+        </div>
+
+        <div class="tarjeta">
+          <div class="saludo" style="align-items:center"><span class="token-lbl">Jue 15 oct</span><span class="estado peligro"><svg class="ico"><use href="#i-x-circulo"/></svg>Cancelada</span></div>
+          <div><b>Almuerzo completo</b><p class="pista">Filete de tilapia · Arroz blanco · Maduro frito</p></div>
+          <div class="aviso peligro" style="padding:9px 12px"><svg class="ico" style="width:18px;height:18px"><use href="#i-info"/></svg><span>Pago rechazado: fondos insuficientes. No se hizo ningún cobro.</span></div>
+          <b class="n abs">3</b>
+        </div>
+
+        <div class="tarjeta">
+          <div class="saludo" style="align-items:center"><span class="token-lbl">Mié 14 oct</span><span class="estado info"><svg class="ico"><use href="#i-entrega"/></svg>Entregada</span></div>
+          <div><b>Almuerzo completo</b><p class="pista">Pechuga a la plancha · Arroz blanco · Frijoles</p></div>
+          <span class="pista">Tarjeta · $12.000 · Entregado a las 12:08&nbsp;p.&nbsp;m.</span>
+        </div>
+      </main>
+    </div></div>
+    <aside class="notas">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>La reserva de hoy va primero, destacada, con atajo a "Mi Ficho". Datos de <code>GET /api/reservas/mias</code>.</span></li>
+        <li><b class="n">2</b><span>Estados PENDIENTE_PAGO, CONFIRMADA, ENTREGADA y CANCELADA, siempre con ícono + texto + color.</span></li>
+        <li><b class="n">3</b><span>El motivo de una cancelación (pago rechazado, cancelada por el usuario, reembolso) queda visible.</span></li>
+        <li><b class="n">·</b><span>Las subsidiadas muestran "Subsidio · $0" en lugar del medio de pago.</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 08 · ESTADOS DE ERROR                                                 -->
+<!-- ===================================================================== -->
+<section class="tablero" id="08-estados-error">
+  <div class="tablero-titulo"><h2>08 · Estados de error</h2><div class="reqs"><span class="req">RF04</span><span class="req">RF06</span><span class="req">RF10</span><span class="req">RNF03</span><span class="req">RNF05</span></div></div>
+  <p class="tablero-sub">Cada error dice qué pasó, por qué y qué puede hacer el usuario. Nunca lo deja sin salida. Los mensajes salen del código de error del backend: <code>{ error: { codigo, mensaje } }</code>.</p>
+  <div class="tablero-cuerpo columna">
+    <div class="telefonos rejilla-3">
+      <div>
+        <div class="tel mini"><div class="pantalla">
+          <div class="barra-estado"><span>10:41</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass</span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
+          <div class="estado-pantalla">
+            <span class="icono-grande alerta"><svg class="ico"><use href="#i-reloj"/></svg><b class="n abs">1</b></span>
+            <h2>Las reservas de hoy ya cerraron</h2>
+            <p>El horario para tu perfil es de <b>6:00 a 10:30&nbsp;a.&nbsp;m.</b> (hora de Colombia). Mañana puedes reservar desde las 6:00&nbsp;a.&nbsp;m.</p>
+            <div class="acciones"><button class="btn btn-secundario">Ver mis reservas</button></div>
+          </div>
+        </div></div>
+        <p class="pie-tel">Fuera de horario</p>
+      </div>
+      <div>
+        <div class="tel mini"><div class="pantalla">
+          <div class="barra-estado"><span>9:19</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass</span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
+          <div class="estado-pantalla">
+            <span class="icono-grande alerta"><svg class="ico"><use href="#i-alerta"/></svg><b class="n abs">2</b></span>
+            <h2>Se agotó el Filete de tilapia</h2>
+            <p>Alguien reservó la última porción mientras elegías. <b>No se te cobró nada.</b></p>
+            <div class="acciones"><button class="btn btn-primario">Elegir otra proteína</button></div>
+          </div>
+        </div></div>
+        <p class="pie-tel">Plato agotado</p>
+      </div>
+      <div>
+        <div class="tel mini"><div class="pantalla">
+          <div class="barra-estado"><span>9:20</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass</span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
+          <div class="estado-pantalla">
+            <span class="icono-grande"><svg class="ico"><use href="#i-x-circulo"/></svg><b class="n abs">3</b></span>
+            <h2>Tu pago fue rechazado</h2>
+            <p><b>Motivo:</b> fondos insuficientes en Nequi. Tu reserva se canceló y <b>no se hizo ningún cobro</b>.</p>
+            <div class="acciones"><button class="btn btn-primario">Intentar con otro medio</button><button class="btn btn-secundario">Volver al menú</button></div>
+          </div>
+        </div></div>
+        <p class="pie-tel">Pago rechazado</p>
+      </div>
+      <div>
+        <div class="tel mini"><div class="pantalla">
+          <div class="barra-estado"><span>8:44</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass</span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
+          <div class="estado-pantalla">
+            <span class="icono-grande info"><svg class="ico"><use href="#i-insignia"/></svg><b class="n abs">4</b></span>
+            <h2>Ya usaste tu subsidio de hoy</h2>
+            <p>Puedes reservar <b>un almuerzo subsidiado por día</b>. Tu ficho de hoy sigue activo.</p>
+            <div class="acciones"><button class="btn btn-primario">Ver mi ficho</button></div>
+          </div>
+        </div></div>
+        <p class="pie-tel">Subsidio no disponible</p>
+      </div>
+      <div>
+        <div class="tel mini"><div class="pantalla">
+          <div class="barra-estado"><span>9:20</span><span class="iconos"><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass</span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
+          <div class="estado-pantalla">
+            <span class="icono-grande neutro"><svg class="ico"><use href="#i-wifi-off"/></svg><b class="n abs">5</b></span>
+            <h2>Sin conexión</h2>
+            <p>No pudimos comunicarnos con el sistema. Revisa tus datos móviles o el Wi‑Fi.</p>
+            <p class="pista" style="text-align:left"><svg class="ico"><use href="#i-escudo"/></svg><span>Reintentar es seguro: <b>nunca se cobra dos veces</b>.</span></p>
+            <div class="acciones"><button class="btn btn-primario"><svg class="ico"><use href="#i-actualizar"/></svg>Reintentar</button></div>
+          </div>
+        </div></div>
+        <p class="pie-tel">Sin conexión</p>
+      </div>
+    </div>
+    <aside class="notas ancho">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span><b>Fuera de horario</b> (RF04): el backend rechaza la reserva después de la hora límite. Se muestra el horario del perfil y cuándo vuelve a abrir.</span></li>
+        <li><b class="n">2</b><span><b>Plato agotado</b> (RNF03): <code>descontarPorcion()</code> no actualizó filas. Se conserva el resto de la selección.</span></li>
+        <li><b class="n">3</b><span><b>Pago rechazado</b> (RF10): se muestra el motivo de la pasarela. La reserva queda CANCELADA y el usuario puede intentar de nuevo.</span></li>
+        <li><b class="n">4</b><span><b>Subsidio no disponible</b> (RF06): ya se usó hoy o el beneficio no está vigente. En el segundo caso se indica a quién acudir.</span></li>
+        <li><b class="n">5</b><span><b>Sin conexión</b>: reintentar reenvía la misma <code>Idempotency-Key</code>, así que no hay cobro duplicado (RNF05).</span></li>
+        <li><b class="n">·</b><span>Todos usan <code>role="alert"</code>, ícono + título + explicación + acción principal, con lenguaje sencillo y sin códigos técnicos.</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 09 · ADMIN · MENÚ DEL DÍA                                             -->
+<!-- ===================================================================== -->
+<section class="tablero" id="09-admin-menu-del-dia">
+  <div class="tablero-titulo"><h2>09 · Administrador · Menú del día</h2><div class="reqs"><span class="req">RF02</span><span class="req">RF03</span><span class="req">RF04</span></div></div>
+  <p class="tablero-sub">El administrador carga, edita, publica, cierra o elimina el menú de una fecha y controla las porciones de cada opción.</p>
+  <div class="tablero-cuerpo columna">
+    <div class="pc">
+      <div class="ventana"><i></i><i></i><i></i><span class="url"><svg class="ico"><use href="#i-candado"/></svg>UDES FoodPass · /admin/menu</span></div>
+      <header class="admin-header">
+        <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div>
+        <nav aria-label="Administración">
+          <a class="on" aria-current="page"><svg class="ico"><use href="#i-plato"/></svg>Menú del día</a>
+          <a><svg class="ico"><use href="#i-lista"/></svg>Catálogos</a>
+          <a><svg class="ico"><use href="#i-reloj"/></svg>Horarios</a>
+          <a><svg class="ico"><use href="#i-escanear"/></svg>Validar fichos</a>
+          <a><svg class="ico"><use href="#i-entrega"/></svg>Entregas</a>
+        </nav>
+        <div class="usuario"><span class="avatar chico">CP</span><span><b>Carlos Pérez</b><br><small>Administrador</small></span><button class="btn-menu"><svg class="ico"><use href="#i-salir"/></svg>Cerrar sesión</button></div>
+      </header>
+      <div class="admin-cuerpo">
+        <div class="titulo-pagina">
+          <h1>Menú del día</h1>
+          <span class="selector-fecha"><span class="icono-btn" style="border:0;width:30px;height:30px"><svg class="ico"><use href="#i-chev-izq"/></svg></span><svg class="ico"><use href="#i-calendario"/></svg>Lunes 19 oct 2026<span class="icono-btn" style="border:0;width:30px;height:30px"><svg class="ico"><use href="#i-chev-der"/></svg></span></span>
+          <span class="estado ok"><svg class="ico"><use href="#i-check"/></svg>Publicado</span>
+          <b class="n">1</b>
+          <div class="acciones">
+            <button class="btn btn-peligro chico auto"><svg class="ico"><use href="#i-basura"/></svg>Eliminar menú</button>
+            <button class="btn btn-secundario chico auto"><svg class="ico"><use href="#i-candado"/></svg>Cerrar reservas</button>
+            <button class="btn btn-primario chico auto"><svg class="ico"><use href="#i-check"/></svg>Guardar cambios<b class="n abs">7</b></button>
+          </div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><span class="lbl"><svg class="ico"><use href="#i-reloj"/></svg>Ventana de reserva</span><span class="valor">6:00 – 10:30 <small>a. m.</small></span><span class="sub">Abierta · cierra en 1 h 12 min</span></div>
+          <div class="kpi"><span class="lbl"><svg class="ico"><use href="#i-plato"/></svg>Platos disponibles</span><span class="valor">63 <small>de 120</small></span><span class="sub">57 reservados</span></div>
+          <div class="kpi"><span class="lbl"><svg class="ico"><use href="#i-check-circulo"/></svg>Reservas confirmadas</span><span class="valor">57</span><span class="sub">45 pagadas · 12 subsidiadas</span></div>
+          <div class="kpi"><span class="lbl"><svg class="ico"><use href="#i-alerta"/></svg>Opciones agotadas</span><span class="valor">1</span><span class="sub">Maduro frito</span></div>
+          <b class="n abs">2</b>
+        </div>
+
+        <div class="rejilla">
+          <div class="columna-tarjetas">
+            <div class="tarjeta">
+              <h3>Datos del menú <b class="n">3</b></h3>
+              <div class="form-rejilla">
+                <div class="campo"><label>Estado</label><div class="entrada chica"><span>Publicado</span><span class="accion"><svg class="ico"><use href="#i-chev-abajo"/></svg></span></div></div>
+                <div class="campo"><label>Total de platos</label><div class="entrada chica"><span>120</span></div></div>
+                <div class="campo"><label>Reservas desde</label><div class="entrada chica"><span>06:00 a. m.</span></div></div>
+                <div class="campo"><label>Reservas hasta</label><div class="entrada chica"><span>10:30 a. m.</span></div></div>
+              </div>
+              <p class="pista"><svg class="ico"><use href="#i-info"/></svg><span>Se combina con el horario de cada rol (pantalla Horarios). Hora de Colombia.</span></p>
+            </div>
+            <div class="tarjeta">
+              <h3>Tipos de almuerzo <a>Editar en Catálogos</a></h3>
+              <table class="tabla">
+                <thead><tr><th>Tipo</th><th>Precio</th><th>Acomp.</th></tr></thead>
+                <tbody>
+                  <tr><td><b>Completo</b></td><td>$12.000</td><td>máx. 2</td></tr>
+                  <tr><td><b>Medio</b></td><td>$8.000</td><td>máx. 1</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="columna-tarjetas">
+            <div class="tarjeta">
+              <h3>Proteínas del menú <button class="btn btn-secundario chico auto"><svg class="ico"><use href="#i-mas"/></svg>Agregar del catálogo</button></h3>
+              <table class="tabla">
+                <thead><tr><th>Proteína</th><th>Porciones disponibles <b class="n">4</b></th><th>Reservadas</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#FFF1DE"><svg viewBox="0 0 64 64"><use href="#f-pollo"/></svg></span>Pechuga a la plancha</span></td><td><span class="num">42</span></td><td>28</td><td><span class="estado ok">Disponible</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-basura"/></svg></span></td></tr>
+                  <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#FCE6E2"><svg viewBox="0 0 64 64"><use href="#f-res"/></svg></span>Carne en bistec</span></td><td><span class="num">18</span></td><td>22</td><td><span class="estado ok">Disponible</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-basura"/></svg></span></td></tr>
+                  <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#E4F0FB"><svg viewBox="0 0 64 64"><use href="#f-pescado"/></svg></span>Filete de tilapia</span></td><td><span class="num">3</span></td><td>7</td><td><span class="estado alerta"><svg class="ico"><use href="#i-alerta"/></svg>Pocas</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-basura"/></svg></span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tarjeta">
+              <h3>Acompañamientos del menú <button class="btn btn-secundario chico auto"><svg class="ico"><use href="#i-mas"/></svg>Agregar del catálogo</button></h3>
+              <table class="tabla">
+                <thead><tr><th>Acompañamiento</th><th>Porciones disponibles</th><th>Reservadas</th><th>Estado <b class="n">5</b></th><th></th></tr></thead>
+                <tbody>
+                  <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#EDF1F6"><svg viewBox="0 0 64 64"><use href="#f-arroz"/></svg></span>Arroz blanco</span></td><td><span class="num">60</span></td><td>40</td><td><span class="estado ok">Disponible</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-basura"/></svg></span></td></tr>
+                  <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#F5E8E1"><svg viewBox="0 0 64 64"><use href="#f-frijol"/></svg></span>Frijoles</span></td><td><span class="num">35</span></td><td>15</td><td><span class="estado ok">Disponible</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-basura"/></svg></span></td></tr>
+                  <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#FFF3D6"><svg viewBox="0 0 64 64"><use href="#f-maduro"/></svg></span>Maduro frito</span></td><td><span class="num cero">0</span></td><td>30</td><td><span class="estado peligro"><svg class="ico"><use href="#i-x-circulo"/></svg>Agotado</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-basura"/></svg></span></td></tr>
+                  <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#E5F3E2"><svg viewBox="0 0 64 64"><use href="#f-ensalada"/></svg></span>Ensalada fresca</span></td><td><span class="num">25</span></td><td>29</td><td><span class="estado ok">Disponible</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-basura"/></svg></span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="notas ancho">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>Selector de fecha (un menú por fecha) y estado <b>Borrador → Publicado → Cerrado</b>. Solo el publicado lo ven los usuarios (RF02).</span></li>
+        <li><b class="n">2</b><span>Resumen del día en tiempo real: ventana, platos disponibles, reservas y opciones agotadas (RF03).</span></li>
+        <li><b class="n">3</b><span>Ventana de reserva del menú (<code>hora_inicio_reserva</code>, <code>hora_fin_reserva</code>) y total de platos (<code>menu.cantidad_disponible</code>).</span></li>
+        <li><b class="n">4</b><span>Porciones editables por opción (<code>menu_proteina</code> / <code>menu_acompanamiento</code>). Bajan solas con cada reserva, de forma atómica (RNF03).</span></li>
+        <li><b class="n">5</b><span>"Agotado" automático cuando llega a 0, con ícono + texto.</span></li>
+        <li><b class="n">6</b><span>"Eliminar menú" solo si no tiene reservas. Si las tiene, se ofrece "Cerrar reservas" (<i>propuesta</i>). Ambos piden confirmación.</span></li>
+        <li><b class="n">7</b><span>"Guardar cambios" es explícito: nada se modifica sin confirmar. <code>publicarMenu()</code>, <code>PUT /api/admin/menu/:id</code>.</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 10 · ADMIN · CATÁLOGOS                                                -->
+<!-- ===================================================================== -->
+<section class="tablero" id="10-admin-catalogos">
+  <div class="tablero-titulo"><h2>10 · Administrador · Catálogos</h2><div class="reqs"><span class="req">RF02</span></div></div>
+  <p class="tablero-sub">Proteínas, acompañamientos y tipos de almuerzo que luego se agregan al menú de cada día.</p>
+  <div class="tablero-cuerpo columna">
+    <div class="pc">
+      <div class="ventana"><i></i><i></i><i></i><span class="url"><svg class="ico"><use href="#i-candado"/></svg>UDES FoodPass · /admin/catalogos</span></div>
+      <header class="admin-header">
+        <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div>
+        <nav aria-label="Administración">
+          <a><svg class="ico"><use href="#i-plato"/></svg>Menú del día</a>
+          <a class="on" aria-current="page"><svg class="ico"><use href="#i-lista"/></svg>Catálogos</a>
+          <a><svg class="ico"><use href="#i-reloj"/></svg>Horarios</a>
+          <a><svg class="ico"><use href="#i-escanear"/></svg>Validar fichos</a>
+          <a><svg class="ico"><use href="#i-entrega"/></svg>Entregas</a>
+        </nav>
+        <div class="usuario"><span class="avatar chico">CP</span><span><b>Carlos Pérez</b><br><small>Administrador</small></span><button class="btn-menu"><svg class="ico"><use href="#i-salir"/></svg>Cerrar sesión</button></div>
+      </header>
+      <div class="admin-cuerpo">
+        <div class="titulo-pagina">
+          <h1>Catálogos</h1>
+          <div class="acciones"><button class="btn btn-primario chico auto"><svg class="ico"><use href="#i-mas"/></svg>Nueva proteína</button></div>
+        </div>
+        <div class="pestanas">
+          <span class="pestana on">Proteínas <span class="cuenta">5</span></span>
+          <span class="pestana">Acompañamientos <span class="cuenta">6</span></span>
+          <span class="pestana">Tipos de almuerzo <span class="cuenta">2</span></span>
+          <b class="n abs" style="left:440px;right:auto;top:6px">1</b>
+        </div>
+        <div class="rejilla lateral">
+          <div class="tarjeta">
+            <div class="barra-filtros"><div class="entrada chica"><svg class="ico"><use href="#i-buscar"/></svg><span class="vacia">Buscar proteína</span></div><span class="selector">Todas<svg class="ico"><use href="#i-chev-abajo"/></svg></span></div>
+            <table class="tabla">
+              <thead><tr><th>Proteína</th><th>Descripción</th><th>Estado <b class="n">2</b></th><th></th></tr></thead>
+              <tbody>
+                <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#FFF1DE"><svg viewBox="0 0 64 64"><use href="#f-pollo"/></svg></span>Pechuga a la plancha</span></td><td class="suave">Con especias de la casa</td><td><span class="estado ok">Activa</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-editar"/></svg></span></td></tr>
+                <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#FCE6E2"><svg viewBox="0 0 64 64"><use href="#f-res"/></svg></span>Carne en bistec</span></td><td class="suave">Res en salsa criolla</td><td><span class="estado ok">Activa</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-editar"/></svg></span></td></tr>
+                <tr class="marcada"><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#E4F0FB"><svg viewBox="0 0 64 64"><use href="#f-pescado"/></svg></span>Filete de tilapia</span></td><td class="suave">A la plancha con limón</td><td><span class="estado ok">Activa</span></td><td><span class="icono-btn" style="border-color:var(--primario);color:var(--primario)"><svg class="ico"><use href="#i-editar"/></svg></span></td></tr>
+                <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#FCE6E2"><svg viewBox="0 0 64 64"><use href="#f-res"/></svg></span>Cerdo en salsa BBQ</span></td><td class="suave">Lomo de cerdo en salsa dulce</td><td><span class="estado ok">Activa</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-editar"/></svg></span></td></tr>
+                <tr><td><span class="con-ilus"><span class="ilus peq" style="--tinte:#FCE6E2"><svg viewBox="0 0 64 64"><use href="#f-res"/></svg></span>Albóndigas</span></td><td class="suave">En salsa de tomate</td><td><span class="estado neutro">Inactiva</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-editar"/></svg></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tarjeta">
+            <h3>Editar proteína <span class="icono-btn"><svg class="ico"><use href="#i-cerrar"/></svg></span></h3>
+            <div class="campo"><label>Nombre</label><div class="entrada chica foco"><span>Filete de tilapia</span></div></div>
+            <div class="campo"><label>Descripción</label><div class="area">A la plancha con limón</div></div>
+            <div class="campo"><label>Imagen <b class="n">3</b></label>
+              <div style="display:flex;gap:14px;align-items:center"><span class="ilus" style="--tinte:#E4F0FB;width:72px;height:72px"><svg viewBox="0 0 64 64" style="width:66px;height:66px"><use href="#f-pescado"/></svg></span><button class="btn btn-secundario chico auto"><svg class="ico"><use href="#i-imagen"/></svg>Cambiar imagen</button></div>
+              <span class="ayuda">JPG o PNG. Se muestra con texto alternativo (el nombre).</span>
+            </div>
+            <div class="campo"><label>Estado</label><span class="interruptor"><i></i>Activa: se puede agregar al menú</span></div>
+            <div style="display:flex;gap:10px;margin-top:4px"><button class="btn btn-secundario chico">Cancelar</button><button class="btn btn-primario chico">Guardar</button></div>
+            <b class="n abs">4</b>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="notas ancho">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>Pestañas por catálogo. "Tipos de almuerzo" tiene nombre, descripción, precio en COP, tipo de servicio y máximo de acompañamientos (<i>pendiente</i>).</span></li>
+        <li><b class="n">2</b><span>Activar o inactivar en lugar de borrar: conserva el historial de reservas antiguas.</span></li>
+        <li><b class="n">3</b><span>Imagen del plato: requiere la columna <code>imagen_url</code> (<i>propuesta pendiente; cambia el diagrama de clases</i>).</span></li>
+        <li><b class="n">4</b><span>Formulario lateral para no perder de vista la lista. Valida con zod en el backend y muestra el error junto al campo.</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 11 · ADMIN · HORARIOS                                                 -->
+<!-- ===================================================================== -->
+<section class="tablero" id="11-admin-horarios">
+  <div class="tablero-titulo"><h2>11 · Administrador · Horarios de reserva</h2><div class="reqs"><span class="req">RF04</span></div></div>
+  <p class="tablero-sub">Ventana de reserva por tipo de usuario (<code>configuracion_reserva</code>), con excepciones para usuarios puntuales.</p>
+  <div class="tablero-cuerpo columna">
+    <div class="pc">
+      <div class="ventana"><i></i><i></i><i></i><span class="url"><svg class="ico"><use href="#i-candado"/></svg>UDES FoodPass · /admin/horarios</span></div>
+      <header class="admin-header">
+        <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div>
+        <nav aria-label="Administración">
+          <a><svg class="ico"><use href="#i-plato"/></svg>Menú del día</a>
+          <a><svg class="ico"><use href="#i-lista"/></svg>Catálogos</a>
+          <a class="on" aria-current="page"><svg class="ico"><use href="#i-reloj"/></svg>Horarios</a>
+          <a><svg class="ico"><use href="#i-escanear"/></svg>Validar fichos</a>
+          <a><svg class="ico"><use href="#i-entrega"/></svg>Entregas</a>
+        </nav>
+        <div class="usuario"><span class="avatar chico">CP</span><span><b>Carlos Pérez</b><br><small>Administrador</small></span><button class="btn-menu"><svg class="ico"><use href="#i-salir"/></svg>Cerrar sesión</button></div>
+      </header>
+      <div class="admin-cuerpo">
+        <div class="titulo-pagina">
+          <h1>Horarios de reserva</h1>
+          <p>Hora de Colombia (America/Bogota). Se combinan con la ventana del menú de cada día.</p>
+        </div>
+        <div class="rejilla lateral">
+          <div class="columna-tarjetas">
+            <div class="tarjeta">
+              <h3><span style="display:flex;gap:8px;align-items:center"><svg class="ico"><use href="#i-grupo"/></svg>Por tipo de usuario</span><b class="n">1</b></h3>
+              <table class="tabla">
+                <thead><tr><th>Rol</th><th>Desde</th><th>Hasta</th><th>Vigencia</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                  <tr class="marcada"><td><b>Estudiante regular</b></td><td>6:00 a. m.</td><td>10:30 a. m.</td><td class="suave">3 ago – 28 nov 2026</td><td><span class="estado ok">Activo</span></td><td><span class="icono-btn" style="border-color:var(--primario);color:var(--primario)"><svg class="ico"><use href="#i-editar"/></svg></span></td></tr>
+                  <tr><td><b>Estudiante subsidiado</b></td><td>6:00 a. m.</td><td>10:00 a. m.</td><td class="suave">3 ago – 28 nov 2026</td><td><span class="estado ok">Activo</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-editar"/></svg></span></td></tr>
+                  <tr><td><b>Empleado UDES</b></td><td>6:00 a. m.</td><td>11:00 a. m.</td><td class="suave">3 ago – 28 nov 2026</td><td><span class="estado ok">Activo</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-editar"/></svg></span></td></tr>
+                </tbody>
+              </table>
+              <p class="pista"><svg class="ico"><use href="#i-info"/></svg><span>El administrador no reserva almuerzos, por eso no aparece en la lista.</span></p>
+            </div>
+            <div class="tarjeta">
+              <h3><span style="display:flex;gap:8px;align-items:center"><svg class="ico"><use href="#i-usuario"/></svg>Excepciones por usuario <b class="n">2</b></span><button class="btn btn-secundario chico auto"><svg class="ico"><use href="#i-mas"/></svg>Agregar excepción</button></h3>
+              <table class="tabla">
+                <thead><tr><th>Usuario</th><th>Desde</th><th>Hasta</th><th>Vigencia</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td><b>María Torres</b><br><span class="suave">Empleado UDES · CC ****4821</span></td><td>6:00 a. m.</td><td>11:30 a. m.</td><td class="suave">19 – 23 oct 2026</td><td><span class="estado ok">Activo</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-editar"/></svg></span></td></tr>
+                  <tr><td><b>Julián Mora</b><br><span class="suave">Estudiante regular · CC ****1093</span></td><td>6:00 a. m.</td><td>11:00 a. m.</td><td class="suave">1 – 15 oct 2026</td><td><span class="estado neutro">Vencido</span></td><td><span class="icono-btn"><svg class="ico"><use href="#i-editar"/></svg></span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tarjeta">
+            <h3>Editar horario <span class="icono-btn"><svg class="ico"><use href="#i-cerrar"/></svg></span></h3>
+            <div class="campo"><label>Aplica a</label><div class="entrada chica"><svg class="ico"><use href="#i-grupo"/></svg><span>Rol: Estudiante regular</span></div></div>
+            <div class="form-rejilla">
+              <div class="campo"><label>Desde</label><div class="entrada chica foco"><span>06:00 a. m.</span></div></div>
+              <div class="campo"><label>Hasta</label><div class="entrada chica"><span>10:30 a. m.</span></div></div>
+              <div class="campo"><label>Vigente desde</label><div class="entrada chica"><span>03/08/2026</span></div></div>
+              <div class="campo"><label>Vigente hasta</label><div class="entrada chica"><span>28/11/2026</span></div></div>
+            </div>
+            <div class="campo"><label>Estado</label><span class="interruptor"><i></i>Activo</span></div>
+            <div class="aviso" style="padding:10px 12px"><svg class="ico" style="width:20px;height:20px"><use href="#i-info"/></svg><span>Una configuración aplica a <b>un rol o a un usuario</b>, nunca a ambos.</span><b class="n abs">3</b></div>
+            <div style="display:flex;gap:10px"><button class="btn btn-secundario chico">Cancelar</button><button class="btn btn-primario chico">Guardar</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="notas ancho">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>Un horario por rol con hora de inicio, hora de fin y vigencia. Se reserva solo si la hora actual cae dentro de este horario <b>y</b> de la ventana del menú (RF04).</span></li>
+        <li><b class="n">2</b><span>Excepciones por usuario: <i>propuesta</i>, prevalecen sobre la del rol. El documento se muestra enmascarado.</span></li>
+        <li><b class="n">3</b><span>Restricción del modelo: <code>id_rol</code> o <code>id_usuario</code>, nunca ambos (<code>CHECK</code> en la base de datos). El formulario lo hace imposible de romper.</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 12 · ADMIN · VALIDAR FICHO                                            -->
+<!-- ===================================================================== -->
+<section class="tablero" id="12-admin-validar-ficho">
+  <div class="tablero-titulo"><h2>12 · Administrador · Validación de fichos</h2><div class="reqs"><span class="req">RF08</span><span class="req">RNF01</span></div></div>
+  <p class="tablero-sub">En la caja, desde el celular o la tableta del administrador: escanear el QR, revisar el pedido, registrar la entrega y rechazar un segundo uso.</p>
+  <div class="tablero-cuerpo columna">
+    <div class="telefonos">
+      <div>
+        <div class="tel"><div class="pantalla">
+          <div class="barra-estado"><span>12:13</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
+          <main class="contenido">
+            <div class="saludo" style="align-items:center"><h1 class="titulo-pantalla">Validar ficho</h1><span class="chip"><svg class="ico"><use href="#i-entrega"/></svg>41 de 57</span></div>
+            <div class="camara rel">
+              <div class="qr-mini"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 21" shape-rendering="crispEdges"><path fill="#FFFFFF" d="M0 0h21v21H0z"/><path stroke="#0B1B3A" d="M0 0.5h7m1 0h5m1 0h7M0 1.5h1m5 0h1m1 0h1m3 0h1m1 0h1m5 0h1M0 2.5h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m1 0h3m1 0h1M0 3.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h1m1 0h3m1 0h1M0 4.5h1m1 0h3m1 0h1m2 0h3m2 0h1m1 0h3m1 0h1M0 5.5h1m5 0h1m7 0h1m5 0h1M0 6.5h7m1 0h1m1 0h1m1 0h1m1 0h7M8 7.5h1m1 0h2M0 8.5h1m1 0h2m1 0h3m6 0h1m2 0h1m1 0h2M1 9.5h1m1 0h2m3 0h2m2 0h4m2 0h3M2 10.5h2m2 0h5m1 0h1m6 0h1M0 11.5h1m4 0h1m2 0h4m1 0h1m1 0h1m1 0h1m1 0h1M1 12.5h1m1 0h5m3 0h2m2 0h2m1 0h2M8 13.5h1m5 0h1m1 0h2m1 0h2M0 14.5h7m1 0h1m1 0h1m3 0h2m1 0h4M0 15.5h1m5 0h1m1 0h2m2 0h1m4 0h1m1 0h1M0 16.5h1m1 0h3m1 0h1m2 0h4m1 0h1m1 0h2M0 17.5h1m1 0h3m1 0h1m1 0h1m1 0h2m5 0h3M0 18.5h1m1 0h3m1 0h1m1 0h1m3 0h3m2 0h1M0 19.5h1m5 0h1m2 0h1m2 0h1m2 0h4M0 20.5h7m1 0h1m1 0h1m2 0h3m2 0h2"/></svg></div>
+              <div class="marco"><span class="esq a"></span><span class="esq b"></span><span class="esq c"></span><span class="esq d"></span><span class="linea-escaneo"></span></div>
+              <span class="leyenda">Apunta la cámara al código QR</span>
+              <b class="n abs" style="top:8px;right:8px">1</b>
+            </div>
+            <div class="separador">o escribe el token</div>
+            <div class="campo"><label>Token del ficho <b class="n">2</b></label><div class="entrada mono"><span class="vacia">XXXX-XXXX-XXXX-XXXX</span></div></div>
+            <button class="btn btn-secundario"><svg class="ico"><use href="#i-buscar"/></svg>Buscar ficho</button>
+          </main>
+        </div></div>
+        <p class="pie-tel">1 · Escanear</p>
+      </div>
+      <div>
+        <div class="tel"><div class="pantalla">
+          <div class="barra-estado"><span>12:14</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
+          <main class="contenido">
+            <span class="volver"><svg class="ico"><use href="#i-flecha-izq"/></svg>Escanear otro</span>
+            <div class="aviso exito"><svg class="ico"><use href="#i-check-circulo"/></svg><div><strong>Ficho válido</strong><span>Activo · reserva de hoy</span></div><b class="n abs">3</b></div>
+            <div class="tarjeta">
+              <div class="perfil" style="padding:0 0 12px"><span class="avatar">LG</span><div><b>Laura Gómez</b><span>Estudiante regular</span></div></div>
+              <div class="filas">
+                <div class="fila"><span>Almuerzo</span><b>Completo</b></div>
+                <div class="fila"><span>Proteína</span><b>Pechuga a la plancha</b></div>
+                <div class="fila"><span>Acompañamientos</span><b>Arroz blanco<br>Ensalada fresca</b></div>
+                <div class="fila"><span>Pago</span><b><span class="estado ok"><svg class="ico"><use href="#i-check"/></svg>Aprobado · Nequi</span></b></div>
+                <div class="fila"><span>Token</span><b style="font-family:var(--mono)">7K3Q-…-H8PN</b></div>
+              </div>
+            </div>
+            <p class="pista"><svg class="ico"><use href="#i-info"/></svg><span>Entrega el almuerzo y luego confirma.</span></p>
+          </main>
+          <div class="barra-accion">
+            <button class="btn btn-primario"><svg class="ico"><use href="#i-entrega"/></svg>Registrar entrega<b class="n abs">4</b></button>
+          </div>
+        </div></div>
+        <p class="pie-tel">2 · Revisar pedido</p>
+      </div>
+      <div>
+        <div class="tel"><div class="pantalla">
+          <div class="barra-estado"><span>12:14</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
+          <div class="estado-pantalla">
+            <span class="icono-grande ok"><svg class="ico"><use href="#i-check"/></svg><b class="n abs">5</b></span>
+            <h2>Entrega registrada</h2>
+            <p><b>Laura Gómez</b> · 12:14&nbsp;p.&nbsp;m.<br>El ficho quedó marcado como <b>usado</b>.</p>
+            <div class="acciones"><button class="btn btn-primario"><svg class="ico"><use href="#i-escanear"/></svg>Escanear siguiente</button></div>
+          </div>
+        </div></div>
+        <p class="pie-tel">3 · Entregado</p>
+      </div>
+      <div>
+        <div class="tel"><div class="pantalla">
+          <div class="barra-estado"><span>12:20</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
+          <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
+          <div class="estado-pantalla">
+            <span class="icono-grande"><svg class="ico"><use href="#i-x-circulo"/></svg><b class="n abs">6</b></span>
+            <h2>Este ficho ya fue usado</h2>
+            <p><b>No entregues otro almuerzo.</b></p>
+            <div class="tarjeta detalle">
+              <div class="filas">
+                <div class="fila"><span>Titular</span><b>Laura Gómez</b></div>
+                <div class="fila"><span>Entregado</span><b>Hoy, 12:14&nbsp;p.&nbsp;m.</b></div>
+                <div class="fila"><span>Registró</span><b>Carlos Pérez</b></div>
+              </div>
+            </div>
+            <div class="acciones"><button class="btn btn-primario"><svg class="ico"><use href="#i-escanear"/></svg>Escanear otro ficho</button></div>
+          </div>
+        </div></div>
+        <p class="pie-tel">4 · Segundo escaneo rechazado</p>
+      </div>
+    </div>
+    <aside class="notas ancho">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>Cámara con <code>html5-qrcode</code>. El navegador del celular solo la permite con HTTPS: en desarrollo se usa un certificado local.</span></li>
+        <li><b class="n">2</b><span>Alternativa manual: escribir el token si la cámara falla o no hay permiso (RF08).</span></li>
+        <li><b class="n">3</b><span><code>validarQR(token)</code> solo <b>consulta</b>: muestra el pedido antes de entregar, sin cambiar nada.</span></li>
+        <li><b class="n">4</b><span>"Registrar entrega": en una sola transacción, el ficho pasa a USADO, se crea la entrega con el id del administrador y la reserva pasa a ENTREGADA (regla 11).</span></li>
+        <li><b class="n">5</b><span>Confirmación clara y vuelta rápida al escáner para atender la fila (RNF01: respuesta &lt; 3 s).</span></li>
+        <li><b class="n">6</b><span>Segundo escaneo rechazado con un mensaje claro: quién lo recibió, cuándo y quién lo registró. También se rechazan fichos expirados o de otro día.</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 13 · ADMIN · ENTREGAS DEL DÍA                                         -->
+<!-- ===================================================================== -->
+<section class="tablero" id="13-admin-entregas">
+  <div class="tablero-titulo"><h2>13 · Administrador · Entregas del día</h2><div class="reqs"><span class="req">RF08</span></div></div>
+  <p class="tablero-sub">Seguimiento de lo entregado y lo pendiente, con quién validó cada ficho.</p>
+  <div class="tablero-cuerpo columna">
+    <div class="pc">
+      <div class="ventana"><i></i><i></i><i></i><span class="url"><svg class="ico"><use href="#i-candado"/></svg>UDES FoodPass · /admin/entregas</span></div>
+      <header class="admin-header">
+        <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div>
+        <nav aria-label="Administración">
+          <a><svg class="ico"><use href="#i-plato"/></svg>Menú del día</a>
+          <a><svg class="ico"><use href="#i-lista"/></svg>Catálogos</a>
+          <a><svg class="ico"><use href="#i-reloj"/></svg>Horarios</a>
+          <a><svg class="ico"><use href="#i-escanear"/></svg>Validar fichos</a>
+          <a class="on" aria-current="page"><svg class="ico"><use href="#i-entrega"/></svg>Entregas</a>
+        </nav>
+        <div class="usuario"><span class="avatar chico">CP</span><span><b>Carlos Pérez</b><br><small>Administrador</small></span><button class="btn-menu"><svg class="ico"><use href="#i-salir"/></svg>Cerrar sesión</button></div>
+      </header>
+      <div class="admin-cuerpo">
+        <div class="titulo-pagina">
+          <h1>Entregas del día</h1>
+          <span class="selector-fecha"><span class="icono-btn" style="border:0;width:30px;height:30px"><svg class="ico"><use href="#i-chev-izq"/></svg></span><svg class="ico"><use href="#i-calendario"/></svg>Lunes 19 oct 2026<span class="icono-btn" style="border:0;width:30px;height:30px"><svg class="ico"><use href="#i-chev-der"/></svg></span></span>
+          <b class="n">1</b>
+          <div class="acciones"><button class="btn btn-secundario chico auto"><svg class="ico"><use href="#i-actualizar"/></svg>Actualizar</button></div>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><span class="lbl"><svg class="ico"><use href="#i-check-circulo"/></svg>Reservas confirmadas</span><span class="valor">57</span><span class="sub">Para hoy</span></div>
+          <div class="kpi"><span class="lbl"><svg class="ico"><use href="#i-entrega"/></svg>Entregadas</span><span class="valor">41 <small>· 72 %</small></span><div class="progreso"><i style="width:72%"></i></div></div>
+          <div class="kpi"><span class="lbl"><svg class="ico"><use href="#i-reloj"/></svg>Por entregar</span><span class="valor">16</span><span class="sub">Fichos activos</span></div>
+          <div class="kpi"><span class="lbl"><svg class="ico"><use href="#i-insignia"/></svg>Subsidiadas</span><span class="valor">12 <small>de 57</small></span><span class="sub">45 pagadas</span></div>
+          <b class="n abs">2</b>
+        </div>
+        <div class="tarjeta">
+          <div class="barra-filtros"><div class="entrada chica"><svg class="ico"><use href="#i-buscar"/></svg><span class="vacia">Buscar por nombre o documento</span></div><span class="selector">Todos los tipos<svg class="ico"><use href="#i-chev-abajo"/></svg></span><span class="selector">Entregadas<svg class="ico"><use href="#i-chev-abajo"/></svg></span></div>
+          <table class="tabla">
+            <thead><tr><th>Hora</th><th>Usuario</th><th>Pedido</th><th>Tipo <b class="n">3</b></th><th>Validó <b class="n">4</b></th></tr></thead>
+            <tbody>
+              <tr><td><b>12:14 p. m.</b></td><td><b>Laura Gómez</b><br><span class="suave">Estudiante regular</span></td><td>Completo · Pechuga, Arroz, Ensalada</td><td><span class="estado info">Pagada · Nequi</span></td><td class="suave">Carlos Pérez</td></tr>
+              <tr><td><b>12:12 p. m.</b></td><td><b>Andrés Rincón</b><br><span class="suave">Estudiante subsidiado</span></td><td>Completo · Carne, Arroz, Frijoles</td><td><span class="estado ok"><svg class="ico"><use href="#i-insignia"/></svg>Subsidiada</span></td><td class="suave">Carlos Pérez</td></tr>
+              <tr><td><b>12:09 p. m.</b></td><td><b>Diana Ruiz</b><br><span class="suave">Empleado UDES</span></td><td>Medio · Tilapia, Ensalada</td><td><span class="estado info">Pagada · Tarjeta</span></td><td class="suave">Carlos Pérez</td></tr>
+              <tr><td><b>12:07 p. m.</b></td><td><b>Julián Mora</b><br><span class="suave">Estudiante regular</span></td><td>Completo · Pechuga, Frijoles, Maduro</td><td><span class="estado info">Pagada · PSE</span></td><td class="suave">Sandra León</td></tr>
+              <tr><td><b>12:05 p. m.</b></td><td><b>Valentina Díaz</b><br><span class="suave">Estudiante subsidiado</span></td><td>Completo · Pechuga, Arroz, Ensalada</td><td><span class="estado ok"><svg class="ico"><use href="#i-insignia"/></svg>Subsidiada</span></td><td class="suave">Sandra León</td></tr>
+              <tr><td><b>12:02 p. m.</b></td><td><b>Sergio Peña</b><br><span class="suave">Empleado UDES</span></td><td>Completo · Carne, Arroz, Maduro</td><td><span class="estado info">Pagada · Nequi</span></td><td class="suave">Sandra León</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <aside class="notas ancho">
+      <h3>Notas del wireframe</h3>
+      <ol>
+        <li><b class="n">1</b><span>Filtro por fecha: <code>GET /api/admin/entregas?fecha=</code>.</span></li>
+        <li><b class="n">2</b><span>Resumen del día: confirmadas, entregadas (con barra de avance), pendientes y subsidiadas.</span></li>
+        <li><b class="n">3</b><span>Tipo de reserva: pagada (con medio) o subsidiada, con ícono + texto.</span></li>
+        <li><b class="n">4</b><span>Quién validó cada entrega (<code>entrega.id_usuario_empleado</code>), para trazabilidad.</span></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+</main>
+
+<script>
+  // Cambia entre wireframe y mockup con ?modo=wireframe | ?modo=mockup
+  const modo = new URLSearchParams(location.search).get('modo') === 'wireframe' ? 'wireframe' : 'mockup';
+  document.body.className = modo === 'wireframe' ? 'wf' : 'mk';
+  document.querySelectorAll('.selector-modo a').forEach(a => {
+    if (a.dataset.modo === modo) a.setAttribute('aria-current', 'page');
+  });
+</script>
+</body>
+</html>
