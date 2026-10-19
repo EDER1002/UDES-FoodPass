@@ -5,12 +5,14 @@ Diseño de todas las pantallas de **UDES FoodPass**, en dos niveles de detalle:
 | | Wireframes | Mockups |
 |---|---|---|
 | **Para qué sirven** | Definir la **estructura**: qué va en cada pantalla, en qué orden y por qué | Mostrar el **aspecto final**: colores, tipografía, íconos e imágenes |
-| **Cómo se ven** | Escala de grises, imágenes como cajas con una X, **notas numeradas** que relacionan cada elemento con un requisito (RF/RNF) | Identidad UDES en azules y blanco, ilustraciones de los platos y un QR real |
+| **Cómo se ven** | Escala de grises, imágenes como cajas con una X, **notas numeradas** que relacionan cada elemento con un requisito (RF/RNF) | Identidad UDES en azules y blanco, ilustraciones de los platos y un QR real, dentro de un celular de tamaño real (390 × 844) |
 | **Carpeta** | [`wireframes/`](wireframes/) | [`mockups/`](mockups/) |
 
 > **Datos de ejemplo.** Nombres, precios, porciones y tokens son ficticios.
 >
 > Algunos detalles reflejan **propuestas pendientes de confirmar** (ver `CLAUDE.md`, sección 13). Por ejemplo: máximo de 2 o 1 acompañamientos, imagen de cada plato y las reglas de cancelación. Las notas de los wireframes las marcan como *pendiente*.
+
+![Flujo de reserva en 3 pasos](mockups/00-flujo-reserva.png)
 
 ## Flujo principal (máximo 3 pasos, RNF04)
 
@@ -60,29 +62,61 @@ Diseño de todas las pantallas de **UDES FoodPass**, en dos niveles de detalle:
 
 ## Galería de mockups
 
+Todas las imágenes tienen el mismo celular y el mismo fondo. Las pantallas más largas que el celular (menú del día, resumen y pago, Mi Ficho) se muestran en dos marcos: al abrir y al desplazarse.
+
 ### Usuario
 
-| Inicio de sesión | Menú del día | Resumen y pago |
-|---|---|---|
-| ![Inicio de sesión](mockups/01-inicio-sesion.png) | ![Menú del día](mockups/02-menu-del-dia.png) | ![Resumen y pago](mockups/04-resumen-pago.png) |
+**01 · Inicio de sesión**
 
-| Resumen con subsidio | Mi Ficho | Mis reservas |
-|---|---|---|
-| ![Resumen con subsidio](mockups/05-resumen-subsidiado.png) | ![Mi Ficho](mockups/06-mi-ficho.png) | ![Mis reservas](mockups/07-mis-reservas.png) |
+![Inicio de sesión](mockups/01-inicio-sesion.png)
+
+**02 · Menú del día**
+
+![Menú del día](mockups/02-menu-del-dia.png)
+
+**03 · Menú desplegable**
 
 ![Menú desplegable](mockups/03-menu-navegacion.png)
+
+**04 · Resumen y pago**
+
+![Resumen y pago](mockups/04-resumen-pago.png)
+
+**05 · Resumen con subsidio**
+
+![Resumen con subsidio](mockups/05-resumen-subsidiado.png)
+
+**06 · Mi Ficho**
+
+![Mi Ficho](mockups/06-mi-ficho.png)
+
+**07 · Mis reservas**
+
+![Mis reservas](mockups/07-mis-reservas.png)
+
+**08 · Estados de error**
 
 ![Estados de error](mockups/08-estados-error.png)
 
 ### Administrador
 
+**09 · Menú del día y porciones**
+
 ![Menú del día (administrador)](mockups/09-admin-menu-del-dia.png)
+
+**10 · Catálogos**
 
 ![Catálogos](mockups/10-admin-catalogos.png)
 
+**11 · Horarios de reserva**
+
 ![Horarios de reserva](mockups/11-admin-horarios.png)
 
+**12 · Validación de fichos**
+
 ![Validación de fichos](mockups/12-admin-validar-ficho.png)
+
+**13 · Entregas del día**
 
 ![Entregas del día](mockups/13-admin-entregas.png)
 
@@ -109,4 +143,5 @@ Todo sale de **un solo archivo**: [`fuente/pantallas.html`](fuente/pantallas.htm
 1. Ábrelo en el navegador para verlo en vivo:
    - `pantallas.html` muestra los mockups.
    - `pantallas.html?modo=wireframe` muestra los wireframes.
+   - `pantallas.html?modo=mockup&exportar=1` muestra los mockups sin títulos, tal como quedan en las imágenes.
 2. Para regenerar los PNG después de editarlo: `node docs/diseno/fuente/renderizar.mjs`. Requiere Playwright con Chromium, que no es una dependencia del proyecto.

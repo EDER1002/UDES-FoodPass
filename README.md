@@ -23,9 +23,7 @@ El administrador gestiona el menú, las porciones y los horarios. En la entrega 
 
 Los **wireframes** (estructura, en escala de grises y con anotaciones) y los **mockups** (diseño final con la identidad UDES) de todas las pantallas están en [`docs/diseno/`](docs/diseno/README.md).
 
-| Menú del día | Resumen y pago | Mi Ficho |
-|---|---|---|
-| ![Mockup del menú del día](docs/diseno/mockups/02-menu-del-dia.png) | ![Mockup del resumen y pago](docs/diseno/mockups/04-resumen-pago.png) | ![Mockup de Mi Ficho](docs/diseno/mockups/06-mi-ficho.png) |
+![Flujo de reserva en 3 pasos: elige tu almuerzo, paga o aplica tu subsidio y reclama con tu ficho QR](docs/diseno/mockups/00-flujo-reserva.png)
 
 ## Tecnologías
 
