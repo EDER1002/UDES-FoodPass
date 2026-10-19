@@ -68,8 +68,8 @@ udes-foodpass/
 
 ```bash
 # 1. Descargar el proyecto (rama de trabajo)
-git clone https://github.com/eder1002/udes-foodpass.git
-cd udes-foodpass
+git clone https://github.com/EDER1002/UDES-FoodPass.git
+cd UDES-FoodPass
 git checkout claude/udes-foodpass-platform-9ik1hk
 
 # 2. Crear tu configuración local y editar los valores "cambia_esto"
