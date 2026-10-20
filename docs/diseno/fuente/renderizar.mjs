@@ -1,5 +1,8 @@
-// Genera los PNG de docs/diseno/wireframes y docs/diseno/mockups a partir de
-// pantallas.html. Cada <section class="tablero"> se guarda como una imagen.
+// Genera los PNG de docs/diseno a partir de pantallas.html:
+//   - wireframes/ y mockups/: una imagen por pantalla, todas del mismo tamaño
+//     (celular 390 × 844 o ventana de escritorio), con el mismo margen y fondo.
+//   - mockups/00-flujo-reserva.png: portada con el flujo de reserva en 3 pasos.
+//   - wireframes/anotados/: cada tablero con su título y sus notas numeradas.
 //
 // Requiere Playwright con Chromium (no es una dependencia del proyecto):
 //   node docs/diseno/fuente/renderizar.mjs
@@ -13,26 +16,34 @@ const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ?? 'playwright')
 
 const aqui = path.dirname(fileURLToPath(import.meta.url));
 const pagina = pathToFileURL(path.join(aqui, 'pantallas.html')).href;
-// Los wireframes conservan título y notas; los mockups se exportan limpios.
-const modos = [
-  { modo: 'wireframe', carpeta: 'wireframes', parametros: 'modo=wireframe' },
-  { modo: 'mockup', carpeta: 'mockups', parametros: 'modo=mockup&exportar=1' },
+const salidas = [
+  { parametros: 'modo=wireframe&exportar=1', carpeta: 'wireframes', selector: '.marco-export' },
+  { parametros: 'modo=mockup&exportar=1', carpeta: 'mockups', selector: '.marco-export' },
+  { parametros: 'modo=mockup&exportar=1', carpeta: 'mockups', selector: '[id="00-flujo-reserva"]' },
+  { parametros: 'modo=wireframe', carpeta: 'wireframes/anotados', selector: 'section.tablero' },
 ];
+
+// Borra los PNG anteriores para que no queden imágenes de pantallas que ya no existen
+for (const carpeta of new Set(salidas.map(s => s.carpeta))) {
+  const destino = path.join(aqui, '..', carpeta);
+  fs.mkdirSync(destino, { recursive: true });
+  for (const archivo of fs.readdirSync(destino)) {
+    if (archivo.endsWith('.png')) fs.rmSync(path.join(destino, archivo));
+  }
+}
 
 const navegador = await chromium.launch();
 const pestana = await navegador.newPage({ viewport: { width: 2200, height: 1200 }, deviceScaleFactor: 2 });
 
-for (const { carpeta, parametros } of modos) {
+for (const { parametros, carpeta, selector } of salidas) {
   await pestana.goto(`${pagina}?${parametros}`);
   await pestana.evaluate(() => document.fonts.ready);
-  const destino = path.join(aqui, '..', carpeta);
-  fs.mkdirSync(destino, { recursive: true });
-  for (const tablero of await pestana.$$('section.tablero')) {
+  for (const elemento of await pestana.$$(selector)) {
     // La portada (00) solo existe en los mockups
-    if (!(await tablero.isVisible())) continue;
-    const id = await tablero.getAttribute('id');
-    await tablero.screenshot({ path: path.join(destino, `${id}.png`) });
-    console.log(`${carpeta}/${id}.png`);
+    if (!(await elemento.isVisible())) continue;
+    const nombre = await elemento.evaluate(e => e.id || e.firstElementChild?.dataset.archivo);
+    await elemento.screenshot({ path: path.join(aqui, '..', carpeta, `${nombre}.png`) });
+    console.log(`${carpeta}/${nombre}.png`);
   }
 }
 
