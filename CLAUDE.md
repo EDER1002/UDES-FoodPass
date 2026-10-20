@@ -68,14 +68,14 @@ El rol lo determina el backend a partir del usuario autenticado. El usuario **no
 
 Cada módulo tiene sus tablas. **Un módulo nunca consulta las tablas de otro**: llama a las operaciones del servicio correspondiente. Los nombres de operación deben coincidir con los diagramas UML.
 
-| Módulo (carpeta) | Servicio | Operaciones públicas | Tablas propias | Depende de |
+| Módulo (`backend/src/modules/`) | Servicio | Operaciones públicas principales | Tablas propias | Depende de |
 |---|---|---|---|---|
 | `autenticacion/` | `AutenticacionService` | `iniciarSesion()`, `validarToken()`, `obtenerRol()` | `rol`, `usuario` | — |
 | `gestion-menu/` | `GestionMenuService` | `publicarMenu()`, `consultarMenu()`, `descontarPorcion()` | `menu`, `tipo_almuerzo`, `proteina`, `acompanamiento`, `menu_proteina`, `menu_acompanamiento` | — |
-| `reservas-pagos/` | `ReservaService` | `crearReserva()`, `procesarPago()`, `cancelarReserva()` | `configuracion_reserva`, `beneficio_subsidiado`, `reserva`, `reserva_proteina`, `reserva_acompanamiento`, `pago` | Autenticación, Gestión de Menú |
-| `validacion-qr/` | `ValidacionQRService` | `generarFichoQR()`, `validarQR()` | `ficho_qr`, `entrega` | Reservas y Pagos |
+| `reservas-pagos/` | `ReservaService` | `crearReserva()`, `procesarPago()`, `cancelarReserva()` | `configuracion_reserva`, `beneficio_subsidiado`, `reserva`, `reserva_proteina`, `reserva_acompanamiento`, `pago` | Autenticación, Gestión de Menú, Validación QR |
+| `validacion-qr/` | `ValidacionQRService` | `generarFichoQR()`, `validarQR()`, `registrarEntrega()` | `ficho_qr`, `entrega` | Reservas y Pagos, Autenticación |
 
-El reparto de tablas es una propuesta; debe confirmarse contra el diagrama de componentes.
+Las operaciones extra que no están en los diagramas, y las dependencias nuevas, están en `docs/cambios-uml.md`. Reservas y Validación QR dependen una de la otra: se conectan en `backend/src/app.js` con `fichos.conectarReservas(reservas)`.
 
 Cada módulo tiene esta forma:
 - `*.service.js`: operaciones públicas.
@@ -90,7 +90,8 @@ Cada módulo tiene esta forma:
 - `EstrategiaPago` es la interfaz, con `procesarTransaccion(pago)`. La implementan `PagoPSE`, `PagoTarjeta` y `PagoNequi`.
 - Agregar un medio de pago = crear una clase nueva sin tocar las demás.
 - **El subsidio no es una estrategia:** se valida en `ReservaService`.
-- **Pasarela:** aún no hay proveedor (los candidatos son Wompi o ePayco). Se usa un adaptador **sandbox** detrás de las estrategias y un webhook genérico `POST /api/pagos/webhook` con firma verificada.
+- **Pasarela:** aún no hay proveedor (los candidatos son Wompi o ePayco). Se usa el adaptador `PasarelaSandbox` detrás de las estrategias y un webhook genérico `POST /api/pagos/webhook` firmado con HMAC-SHA256 (cabecera `X-FoodPass-Firma: sha256=<hex>`, secreto `WEBHOOK_SECRETO`).
+- `ProcesadorDePagos` se crea **uno por pago**, para que dos pagos simultáneos no compartan la estrategia.
 - **Nunca** guardar números de tarjeta ni datos sensibles de pago.
 
 ## 7. Modelo de datos (16 tablas, `snake_case`)
@@ -197,19 +198,25 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 | `npm run db:migrar` | Crea o actualiza las tablas | Fase 1 |
 | `npm run db:seed` | Carga los datos de ejemplo (solo desarrollo) | Fase 1 |
 | `npm run dev:backend` | API en `http://localhost:3000` | Fase 2 |
-| `npm test` | Pruebas del backend | Fase 2 |
+| `npm test` | Pruebas del backend (77) | Fase 2 |
+| `npm run pago:webhook [-- RECHAZADO]` | Simula la respuesta del banco al pago PSE pendiente más reciente | Fase 5 |
 | `npm run dev:frontend` | Interfaz en `http://localhost:5173` | Fase 3 |
+| `npm run dev` | API e interfaz juntas | Fase 3 |
+| `npm run dev:celular` | Igual, con HTTPS en la red local para la cámara del celular | Fase 4 |
+| `npm run build` | Compila la interfaz en `frontend/dist/` | Fase 3 |
 
 ## 12. Fases
 
 | Fase | Entregable | Estado |
 |---|---|---|
-| 0. Preparación | Estructura, `CLAUDE.md`, `README.md`, `.env.example`, `docker-compose.yml`, **wireframes y mockups** | En revisión |
-| 1. Base de datos | Migraciones de las 16 tablas, índices y seeds | Pendiente |
-| 2. Backend | 4 módulos, Strategy + sandbox, webhook, API y pruebas de la sección 14 del documento | Pendiente |
-| 3. Frontend del usuario | Login, Menú, Resumen y pago, Mi Ficho, errores | Pendiente |
-| 4. Frontend del administrador | Menú, catálogos, horarios, validación QR, entregas | Pendiente |
-| 5. Cierre | README final, revisión de seguridad y coherencia con UML | Pendiente |
+| 0. Preparación | Estructura, `CLAUDE.md`, `README.md`, `.env.example`, `docker-compose.yml`, **wireframes y mockups** | Completa |
+| 1. Base de datos | Migraciones de las 16 tablas, índices y seeds | Completa |
+| 2. Backend | 4 módulos, Strategy + sandbox, webhook, API y pruebas de la sección 14 del documento | Completa |
+| 3. Frontend del usuario | Login, Menú, Resumen y pago, Mi Ficho, errores | Completa |
+| 4. Frontend del administrador | Menú, catálogos, horarios, validación QR, entregas | Completa |
+| 5. Cierre | README final, revisión de seguridad y coherencia con UML (`docs/cambios-uml.md`) | Completa |
+
+**Verificación:** las 77 pruebas del backend pasan. Además se hizo un recorrido de punta a punta en Chromium (39 pasos: los tres medios de pago, rechazo, pago pendiente con webhook, subsidio, horario, plato agotado, sin conexión, cancelación, panel del administrador, validación manual y con cámara) sin errores de consola ni problemas de accesibilidad WCAG 2.2 AA según axe-core.
 
 **Pruebas mínimas (Fase 2):**
 - Reserva fuera de horario rechazada.
@@ -226,7 +233,7 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 - PostgreSQL con `docker compose` (imagen `postgres:16-alpine`, puerto expuesto solo en `127.0.0.1`).
 - El estado de pago `REEMBOLSADO` se agrega por la regla 9.
 
-**Pendientes de confirmar con el usuario.** Cada una lleva la propuesta de Claude; los mockups ya la reflejan.
+**Confirmadas por el usuario** (aceptó todas las propuestas; ya están en el código):
 1. Máximo de acompañamientos: 2 para el almuerzo completo y 1 para el medio, con una columna nueva `tipo_almuerzo.max_acompanamientos`. *Cambia el diagrama de clases.*
 2. Una reserva activa por día por usuario: sí.
 3. Imágenes: columna `imagen_url` (opcional) en `proteina` y `acompanamiento`. *Cambia el diagrama de clases.*
@@ -235,11 +242,13 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
    - `menu_proteina` y `menu_acompanamiento` son las porciones por opción.
    - `descontarPorcion(idMenu, idProteina, idsAcompanamiento)` descuenta las tres a la vez, y recibe una lista de acompañamientos.
    - `proteina.cantidad_disponible` es solo informativa.
-5. Subsidio vigente: agregar `fecha_inicio_vigencia`, `fecha_fin_vigencia` y `estado` a `beneficio_subsidiado`. Falta definir para qué sirve `codigo_qr_diario`.
+5. Subsidio vigente: agregar `fecha_inicio_vigencia`, `fecha_fin_vigencia` y `estado` a `beneficio_subsidiado`. `codigo_qr_diario` se conserva (UNIQUE) pero no se usa: el ficho del día cumple esa función.
 6. Cancelar una reserva confirmada: solo antes de la hora límite. Al cancelar, las porciones vuelven, el pago pasa a REEMBOLSADO, el ficho a EXPIRADO y el subsidio queda libre.
-7. Valores de `tipo_almuerzo.tipo_servicio`: por definir (revisar el PDF).
+7. `tipo_almuerzo.tipo_servicio`: texto libre que describe el servicio ("Sopa, seco y jugo", "Seco y jugo"). Revisar contra el PDF cuando esté en `docs/`.
 
-**Propuestas técnicas** (se aplican si el usuario no dice otra cosa):
+**Pagos:** sandbox simulado completo (decisión del usuario). Datos de prueba en el README.
+
+**Decisiones técnicas** (aplicadas):
 - **Menú:** un menú por fecha. Solo se elimina si no tiene reservas; si las tiene, se cierra.
 - **Horario:** el horario propio de un usuario manda sobre el de su rol. Si no hay ninguno vigente, la reserva se rechaza.
 - **Login:** solo correos `@udes.edu.co`.
@@ -247,7 +256,9 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 - **Sandbox:** datos de prueba al estilo Wompi (una tarjeta que aprueba y otra que rechaza).
 - **Operaciones extra:** `ReservaService` tendrá algunas para Validación QR (por ejemplo `obtenerReserva()` y `marcarEntregada()`). Avisar al usuario si no están en los diagramas.
 - **Reloj:** reloj inyectable (zona Bogotá) para que las pruebas fijen la hora.
-- **Token del ficho:** legible para escribirlo a mano (por ejemplo `7K3Q-9XWA-2M4D-H8PN`). El formato final se define en la Fase 2.
+- **Token del ficho:** 16 caracteres en base32 de Crockford (80 bits), con el formato `7K3Q-9XWA-2M4D-H8PN`. Al escribirlo a mano no importan mayúsculas, espacios ni guiones, y se aceptan O/0 e I/L/1 como el mismo carácter.
+- **Pago pendiente:** una reserva PENDIENTE_PAGO sin pago vence a los 15 minutos; con un pago PSE pendiente espera el webhook.
+- **Reembolso:** simulado; solo cambia el estado del pago a REEMBOLSADO.
 
 ## 14. Entorno de trabajo de Claude
 

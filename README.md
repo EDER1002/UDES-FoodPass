@@ -4,7 +4,7 @@ Plataforma web responsiva para **reservar y reclamar almuerzos** en la cafeterí
 
 Proyecto de aula de **Diseño de Software I**, Ingeniería de Software.
 
-> **Estado:** Fase 0 (preparación) en revisión. Ya están listos la estructura del repositorio, los wireframes y los mockups. La base de datos, el backend y el frontend llegan en las fases siguientes.
+> **Estado:** las fases 0 a 5 están completas. Hay base de datos, API, interfaz del usuario y del administrador, con pruebas automáticas y verificación en el navegador. Los pagos funcionan en **entorno de pruebas (sandbox)**: no se mueve dinero real.
 
 ## ¿Qué problema resuelve?
 
@@ -17,12 +17,6 @@ Con UDES FoodPass, desde el celular, puedes:
 
 El administrador gestiona el menú, las porciones y los horarios. En la entrega escanea el QR, que ya no puede usarse otra vez.
 
-> Los pagos funcionan solo en **entorno de pruebas (sandbox)**: no se mueve dinero real.
-
-## Diseño de pantallas
-
-Los **wireframes** (estructura, en escala de grises y con anotaciones) y los **mockups** (diseño final con la identidad UDES) de todas las pantallas están en [`docs/diseno/`](docs/diseno/README.md).
-
 ![Flujo de reserva en 3 pasos: elige tu almuerzo, paga o aplica tu subsidio y reclama con tu ficho QR](docs/diseno/mockups/00-flujo-reserva.png)
 
 ## Tecnologías
@@ -30,27 +24,11 @@ Los **wireframes** (estructura, en escala de grises y con anotaciones) y los **m
 | Capa | Tecnología |
 |---|---|
 | Frontend | React + Vite (JavaScript), mobile-first; `html5-qrcode` para leer el QR |
-| Backend | Node.js (LTS) + Express, módulos ES; `zod`, `bcrypt`, JWT, `qrcode` |
+| Backend | Node.js 22 + Express 5, módulos ES; `zod`, `bcrypt`, JWT, `qrcode` |
 | Datos | PostgreSQL 16 (con Docker Compose), migraciones SQL con `pg` |
-| Pruebas | Vitest + Supertest |
+| Pruebas | Vitest + Supertest contra una base de datos de pruebas real |
 
-Arquitectura en capas con cuatro módulos: **Autenticación y Roles**, **Gestión de Menú**, **Reservas y Pagos** (con patrón Strategy para los medios de pago) y **Validación QR**.
-
-## Estructura del repositorio
-
-```
-udes-foodpass/
-├── backend/            API REST (Node.js + Express)
-│   ├── src/modules/    autenticacion · gestion-menu · reservas-pagos · validacion-qr
-│   ├── src/db/         conexión, migraciones y seeds
-│   └── tests/
-├── frontend/           Interfaz web (React + Vite)
-├── docs/               PDF del proyecto, diagramas UML (.drawio) y diseño de pantallas
-├── docker/             Scripts de inicio de PostgreSQL
-├── docker-compose.yml  Base de datos para desarrollo
-├── .env.example        Plantilla de configuración (documentada)
-└── CLAUDE.md           Guía del proyecto, convenciones y decisiones
-```
+Arquitectura en capas con cuatro módulos: **Autenticación**, **Gestión de Menú**, **Reservas y Pagos** (con el patrón Strategy para los medios de pago) y **Validación QR**. Cada módulo es dueño de sus tablas y los demás solo usan sus operaciones.
 
 ## Requisitos
 
@@ -60,49 +38,166 @@ udes-foodpass/
 | Node.js 22 o superior (trae npm) | Ejecutar el backend y el frontend | `node --version` |
 | Docker + Docker Compose | Ejecutar PostgreSQL sin instalarlo en el sistema | `docker --version` y `docker compose version` |
 
-## Instalación y uso
+> **En Arch Linux**, Docker necesita que su servicio esté encendido. Si `docker compose up -d` dice *Cannot connect to the Docker daemon*, el servicio está apagado. Encenderlo usa `sudo` y modifica el sistema: pide ayuda antes de hacerlo si no estás seguro.
 
-> Algunos pasos todavía no funcionan: se habilitan en la fase indicada.
+## Instalación (una sola vez)
+
+Todos los comandos se escriben en una terminal abierta **dentro de la carpeta del proyecto**.
 
 ```bash
-# 1. Descargar el proyecto (rama de trabajo)
+# 1. Descargar el proyecto
 git clone https://github.com/EDER1002/UDES-FoodPass.git
 cd UDES-FoodPass
-git checkout claude/udes-foodpass-platform-9ik1hk
 
-# 2. Crear tu configuración local y editar los valores "cambia_esto"
+# 2. Crear tu configuración local
 cp .env.example .env
-
-# 3. Encender la base de datos
-docker compose up -d
-
-# 4. Instalar dependencias, crear tablas y cargar datos de ejemplo   (Fase 1)
-npm install
-npm run db:migrar
-npm run db:seed
-
-# 5. Arrancar la API y la interfaz, cada una en su terminal         (Fases 2 y 3)
-npm run dev:backend
-npm run dev:frontend
-
-# 6. Pruebas automáticas del backend                               (Fase 2)
-npm test
 ```
 
-### Usuarios de prueba
+Abre `.env` con un editor de texto y cambia cada `cambia_esto`:
+- `POSTGRES_PASSWORD`: inventa una contraseña y escríbela también dentro de `DATABASE_URL` y `DATABASE_URL_TEST`.
+- `JWT_SECRETO`: al menos 32 caracteres cualesquiera.
+- `WEBHOOK_SECRETO`: al menos 16 caracteres cualesquiera.
 
-Los usuarios de prueba (uno por rol, con correo `@udes.edu.co`) y su contraseña se documentarán aquí en la **Fase 1**. Serán **datos de ejemplo, solo para desarrollo**.
+```bash
+# 3. Encender la base de datos (queda en un contenedor, no se instala en el sistema)
+npm run db:levantar
 
-## Plan de trabajo
+# 4. Instalar dependencias (todo queda en la carpeta node_modules del proyecto)
+npm install
 
-| Fase | Entregable | Estado |
+# 5. Crear las tablas y cargar los datos de ejemplo
+npm run db:migrar
+npm run db:seed
+```
+
+## Uso diario
+
+```bash
+npm run db:levantar   # enciende PostgreSQL (si no está encendido)
+npm run dev           # arranca la API y la interfaz juntas
+```
+
+Abre **http://localhost:5173** en el navegador. Para detener todo: `Ctrl + C` en la terminal y luego `npm run db:apagar`.
+
+| Comando | Qué hace |
+|---|---|
+| `npm run dev` | API (`http://localhost:3000/api`) e interfaz (`http://localhost:5173`) juntas |
+| `npm run dev:backend` / `npm run dev:frontend` | Cada una por separado, en terminales distintas |
+| `npm run dev:celular` | Igual que `dev`, pero con HTTPS para usar la cámara del celular (ver abajo) |
+| `npm test` | Pruebas automáticas del backend (77 pruebas) |
+| `npm run build` | Compila la interfaz para producción en `frontend/dist/` |
+| `npm run db:seed` | **Borra todo** y vuelve a cargar los datos de ejemplo (útil para empezar de cero) |
+| `npm run pago:webhook` | Simula la respuesta del banco a un pago PSE pendiente (ver abajo) |
+| `npm run db:apagar` | Apaga PostgreSQL (los datos se conservan) |
+
+## Usuarios de prueba
+
+Son **datos de ejemplo, solo para desarrollo**. La contraseña de todos es **`FoodPass2026!`**.
+
+| Correo | Nombre | Rol | Para probar |
+|---|---|---|---|
+| `estudiante.regular@udes.edu.co` | Laura Gómez | Estudiante regular | Reserva y pago en línea |
+| `estudiante.subsidiado@udes.edu.co` | Andrés Rincón | Estudiante subsidiado | Reserva sin pago (total $0) |
+| `subsidiado.sin.beneficio@udes.edu.co` | Valentina Díaz | Estudiante subsidiado | Pantalla "Tu subsidio no está disponible" (beneficio vencido) |
+| `empleado@udes.edu.co` | Diana Ruiz | Empleado UDES | Igual que el estudiante regular |
+| `admin@udes.edu.co` | Carlos Pérez | Administrador | Menú, catálogos, horarios, validación de fichos y entregas |
+
+El seed publica un menú para hoy y los próximos 13 días, con horario de reserva de 00:00 a 23:59 para que puedas probar a cualquier hora. "Maduro frito" empieza **agotado** y "Filete de tilapia" tiene solo 3 porciones, para ver esos estados.
+
+## Datos de prueba de los pagos
+
+La pantalla de pago tiene un enlace **"Ver datos de prueba"** con esta misma información.
+
+| Medio | Datos | Resultado |
 |---|---|---|
-| 0 | Estructura, documentación, wireframes y mockups | En revisión |
-| 1 | Base de datos: 16 tablas, índices y datos de ejemplo | Pendiente |
-| 2 | Backend: 4 módulos, pagos sandbox, API y pruebas | Pendiente |
-| 3 | Frontend del usuario | Pendiente |
-| 4 | Frontend del administrador | Pendiente |
-| 5 | Cierre: documentación, seguridad y coherencia con UML | Pendiente |
+| Tarjeta | `4242 4242 4242 4242`, cualquier vencimiento futuro (ej. `12/30`) y CVC de 3 dígitos | Aprobado |
+| Tarjeta | `4111 1111 1111 1111` | Rechazado (fondos insuficientes) |
+| Nequi | Cualquier celular de 10 dígitos que empiece por 3 (ej. `3001234567`) | Aprobado |
+| Nequi | `3992222222` | Rechazado |
+| PSE | Banco "aprueba el pago" | Aprobado |
+| PSE | Banco "rechaza el pago" | Rechazado |
+| PSE | Banco "respuesta pendiente" | Queda **pendiente** hasta que llegue la respuesta del banco |
+
+**Pago pendiente (PSE):** la pantalla queda en "Tu banco está procesando el pago". Para simular la respuesta del banco, abre **otra terminal** en la carpeta del proyecto y escribe:
+
+```bash
+npm run pago:webhook               # aprueba el pago pendiente más reciente
+npm run pago:webhook -- RECHAZADO  # o lo rechaza
+```
+
+La pantalla del usuario cambia sola en unos segundos. Por dentro, el comando envía a `POST /api/pagos/webhook` la notificación firmada (HMAC-SHA256 con `WEBHOOK_SECRETO`) que mandaría una pasarela real.
+
+**Reintentos seguros:** cada intento de pago lleva una `Idempotency-Key`. Si se repite (doble clic, se cayó la conexión), el sistema devuelve el mismo resultado sin cobrar dos veces.
+
+## Probar el escáner de QR con el celular
+
+El navegador del celular solo permite usar la cámara en páginas con HTTPS.
+
+1. Conecta el computador y el celular a la **misma red Wi-Fi**.
+2. Ejecuta `npm run dev:celular`. Vite muestra una dirección como `https://192.168.1.20:5173` (la línea *Network*).
+3. Abre esa dirección en el celular. Saldrá un aviso de "conexión no privada" porque el certificado es de desarrollo: elige *Avanzado → Continuar*.
+4. Ingresa como `admin@udes.edu.co`, entra a **Validar fichos** y pulsa **Activar cámara**.
+
+Si la cámara no está disponible, el administrador puede **escribir el token** del ficho (no importan las mayúsculas ni los guiones).
+
+## Estructura del repositorio
+
+```
+UDES-FoodPass/
+├── backend/
+│   ├── src/modules/       autenticacion · gestion-menu · reservas-pagos · validacion-qr
+│   │                      (cada uno con *.service, *.repositorio, *.rutas y *.esquemas)
+│   ├── src/compartido/    reloj (zona Bogotá), errores, validación y roles
+│   ├── src/db/            conexión, migraciones SQL y datos de ejemplo
+│   ├── src/herramientas/  simulador del webhook de pagos
+│   └── tests/             pruebas con Vitest + Supertest
+├── frontend/
+│   ├── src/paginas/       usuario/ y admin/
+│   ├── src/componentes/   encabezado, íconos y estados comunes
+│   └── public/platos/     ilustraciones de los platos
+├── docs/                  diseño de pantallas y cambios para los diagramas UML
+├── docker-compose.yml     PostgreSQL para desarrollo
+├── .env.example           plantilla de configuración (documentada)
+└── CLAUDE.md              guía del proyecto, reglas y decisiones
+```
+
+## API REST
+
+Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": { "codigo", "mensaje" } }`, con el mensaje en español.
+
+| Método y ruta | Qué hace | Acceso |
+|---|---|---|
+| `POST /api/auth/login` | Inicia sesión y devuelve el JWT | Público |
+| `GET /api/auth/me` | Datos del usuario | Con sesión |
+| `GET /api/menu/hoy` | Menú del día con porciones | Con sesión |
+| `GET /api/reservas/contexto` | Horario, subsidio y reserva activa de hoy | Usuarios |
+| `POST /api/reservas` | Crea la reserva | Usuarios (no administradores) |
+| `POST /api/reservas/:id/pago` | Paga (cabecera `Idempotency-Key`) | Regular y empleado |
+| `POST /api/reservas/:id/cancelar` | Cancela antes de la hora límite | Dueño |
+| `GET /api/reservas/mias` · `GET /api/reservas/:id` | Historial y detalle | Dueño |
+| `GET /api/fichos/actual` | Mi Ficho | Con sesión |
+| `GET /api/pagos/medios` | Medios de pago y bancos PSE | Con sesión |
+| `POST /api/pagos/webhook` | Respuesta de la pasarela | Pasarela (firma `X-FoodPass-Firma`) |
+| `GET/POST/PUT/DELETE /api/admin/menu[/:id]` | Menú del día | Administrador |
+| `GET/POST/PUT /api/admin/{proteinas,acompanamientos,tipos-almuerzo}` | Catálogos | Administrador |
+| `GET/PUT /api/admin/configuracion-reserva` | Horarios por rol o usuario | Administrador |
+| `POST /api/admin/fichos/validar` | Valida un token y muestra el pedido | Administrador |
+| `POST /api/admin/fichos/:id/entregar` | Registra la entrega | Administrador |
+| `GET /api/admin/entregas?fecha=` | Entregas del día | Administrador |
+
+## Seguridad
+
+- Contraseñas con bcrypt; sesión con JWT que expira (8 h por defecto) y límite de intentos de login.
+- Cada ruta exige el rol correcto, y el rol lo decide el backend.
+- Consultas SQL parametrizadas y validación de toda entrada con zod.
+- CORS restringido al frontend y cabeceras seguras con helmet.
+- Nunca se guardan números de tarjeta, CVC ni otros datos sensibles de pago: solo el método, el monto y la referencia.
+- Las porciones se descuentan de forma atómica (no hay sobreventa) y el ficho QR contiene **solo** un token aleatorio, sin datos personales.
+- Los secretos viven en `.env`, que nunca se sube a GitHub.
+
+## Diseño
+
+Los **wireframes** y **mockups** de todas las pantallas están en [`docs/diseno/`](docs/diseno/README.md). Los cambios que hay que llevar a los diagramas UML están en [`docs/cambios-uml.md`](docs/cambios-uml.md).
 
 ## Licencia
 
