@@ -61,6 +61,25 @@ body.wf .solo-mk{display:none!important}
 .telefonos{display:flex;gap:28px;align-items:flex-start}
 .telefonos.rejilla-3{display:grid;grid-template-columns:repeat(3,max-content);gap:28px}
 .pie-tel{margin-top:10px;text-align:center;font-size:13px;font-weight:700;color:var(--texto-suave)}
+/* Exportación limpia de mockups (?exportar=1): sin título ni texto, fondo uniforme */
+/* Exportación (?exportar=1): cada pantalla en su propio marco, con el mismo margen y fondo */
+.exportar .tablero-titulo,.exportar .tablero-sub,.exportar .notas,.exportar .pie-tel{display:none!important}
+.exportar .tablero{background:none;padding:0;border-radius:0}
+.marco-export{display:inline-block;padding:48px;background:#E8EEF7}
+.wf .marco-export{background:#F1F1F1}
+/* Portada del flujo de reserva */
+.tablero.heroe{background:radial-gradient(900px 520px at 12% -10%,#2457B5 0%,rgba(36,87,181,0) 70%),linear-gradient(160deg,#0B2A5B 0%,#061631 100%);color:#fff;padding:60px 72px 72px;border-radius:22px}
+.exportar .tablero.heroe{border-radius:0}
+.heroe-cab{display:flex;align-items:center;gap:20px;margin-bottom:44px}
+.heroe-cab h2{font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.heroe-cab p{font-size:19px;opacity:.86;margin-top:4px}
+.heroe-cab .logo{width:64px;height:64px;border-radius:19px}
+.heroe-cab .logo .ico{width:36px;height:36px}
+.heroe .telefonos{gap:52px}
+.heroe figure{display:flex;flex-direction:column;align-items:center;gap:22px}
+.heroe figcaption{display:flex;align-items:center;gap:12px;font-size:21px;font-weight:700}
+.heroe figcaption b{width:38px;height:38px;border-radius:50%;background:#fff;color:#0B2A5B;display:grid;place-items:center;font-size:19px;font-weight:800}
+.heroe .tel{color:var(--texto);box-shadow:0 36px 70px -24px rgba(0,0,0,.7),0 0 0 1.5px rgba(255,255,255,.18)!important}
 
 /* ---------- Notas del wireframe ---------- */
 .notas{width:340px;flex:none;background:#fff;border:1.5px solid #BDBDBD;border-radius:14px;padding:18px 20px;font-size:13.5px;line-height:1.5;color:#262626}
@@ -75,15 +94,21 @@ body.wf .solo-mk{display:none!important}
 .rel{position:relative}
 
 /* ---------- Teléfono ---------- */
-.tel{width:395px;border:10px solid #0E1A2E;border-radius:46px;background:var(--fondo);overflow:hidden;box-shadow:0 24px 44px -20px rgba(11,27,58,.5);flex:none}
-.tel.mini{width:330px;border-radius:40px}
-.wf .tel{border:2px solid #444;border-radius:30px;box-shadow:none}
-.pantalla{display:flex;flex-direction:column;min-height:800px;position:relative}
-.tel.mini .pantalla{min-height:600px}
-.tel.mini .marca{font-size:15.5px}
-.barra-estado{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 22px 0 28px;font-size:13.5px;font-weight:700;background:var(--primario-fuerte);color:#fff;flex:none}
+/* Celular de 390 × 844 (el mismo en todas las pantallas), con isla de cámara e indicador de inicio */
+.tel{width:414px;border:12px solid #0D1522;border-radius:62px;background:var(--fondo);overflow:hidden;position:relative;flex:none;box-shadow:0 34px 60px -26px rgba(11,27,58,.55),0 0 0 1.5px #2A3446}
+.tel::after{content:"";position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:3px;background:#13203A;opacity:.85;z-index:10}
+.wf .tel{border-color:#F3F3F3;box-shadow:0 0 0 2px #555}
+.wf .tel::after{background:#8A8A8A}
+.pantalla{display:flex;flex-direction:column;height:844px;overflow:hidden;position:relative}
+/* El contenido que no cabe se corta con un desvanecido, como en una app que se desplaza */
+.pantalla>.contenido{flex:1 1 auto;min-height:0;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 40px),transparent)}
+.contenido>:first-child{margin-top:var(--desp,0px)}
+.mk .app-header{background:linear-gradient(180deg,#0B2A5B 0%,#0F3270 100%)}
+.barra-estado{height:52px;display:flex;justify-content:space-between;align-items:center;padding:4px 34px 0 40px;font-size:15.5px;font-weight:700;background:var(--primario-fuerte);color:#fff;flex:none;position:relative}
+.barra-estado::after{content:"";position:absolute;left:50%;top:11px;transform:translateX(-50%);width:124px;height:35px;border-radius:20px;background:#05080F}
 .barra-estado .iconos{display:flex;gap:6px;align-items:center}
 .wf .barra-estado{background:#fff;color:#444}
+.wf .barra-estado::after{background:#CFCFCF}
 
 /* ---------- Íconos e ilustraciones ---------- */
 .ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
@@ -177,7 +202,7 @@ body.wf .solo-mk{display:none!important}
 .wf .sel .control{background:#1F1F1F;border-color:#1F1F1F}
 
 /* ---------- Barra inferior de acción ---------- */
-.barra-accion{margin-top:auto;background:var(--superficie);border-top:1px solid var(--borde);padding:12px 16px 20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 -10px 24px -16px rgba(11,27,58,.35);position:relative}
+.barra-accion{margin-top:auto;background:var(--superficie);border-top:1px solid var(--borde);padding:12px 16px 30px;display:flex;flex-direction:column;gap:10px;box-shadow:0 -10px 24px -16px rgba(11,27,58,.35);position:relative}
 .resumen-linea{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
 .resumen-linea .txt{font-size:13px;color:var(--texto-suave);line-height:1.35}
 .resumen-linea .txt b{color:var(--texto);font-size:14px}
@@ -295,12 +320,13 @@ body.wf .solo-mk{display:none!important}
 .nav-item .estado{margin-left:auto}
 .nav-item.salir{color:var(--peligro);border-top:1px solid var(--borde-suave)}
 .nav-item.salir .ico{color:var(--peligro)}
-.atenuado{position:relative;flex:1}
+.atenuado{position:relative;flex:1;min-height:0;overflow:hidden}
 .atenuado::after{content:"";position:absolute;inset:0;background:rgba(11,27,58,.55)}
 .wf .atenuado::after{background:rgba(0,0,0,.22)}
 
 /* ---------- Escritorio (administrador) ---------- */
-.pc{width:1240px;border-radius:14px;overflow:hidden;background:var(--fondo);border:1px solid var(--borde-tablero);box-shadow:0 26px 50px -26px rgba(11,27,58,.5);flex:none}
+/* Ventana de escritorio: la misma altura en todas las pantallas del administrador */
+.pc{width:1240px;height:1046px;border-radius:14px;overflow:hidden;background:var(--fondo);border:1px solid var(--borde-tablero);box-shadow:0 26px 50px -26px rgba(11,27,58,.5);flex:none}
 .wf .pc{border:2px solid #444;box-shadow:none}
 .ventana{height:38px;background:#DCE2EB;display:flex;align-items:center;gap:8px;padding:0 14px}
 .ventana i{width:12px;height:12px;border-radius:50%;background:#B7C1D0}
@@ -506,6 +532,21 @@ body.wf .solo-mk{display:none!important}
 <main class="lienzo">
 
 <!-- ===================================================================== -->
+<!-- 00 · PORTADA DEL FLUJO (solo mockups)                                 -->
+<!-- ===================================================================== -->
+<section class="tablero heroe solo-mk" id="00-flujo-reserva">
+  <div class="heroe-cab">
+    <span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span>
+    <div><h2>UDES FoodPass</h2><p>Reserva tu almuerzo en 3 pasos y reclámalo sin hacer fila.</p></div>
+  </div>
+  <div class="telefonos">
+    <figure><figcaption><b>1</b>Elige tu almuerzo</figcaption><div class="clon" data-de="02-menu-del-dia"></div></figure>
+    <figure><figcaption><b>2</b>Paga o aplica tu subsidio</figcaption><div class="clon" data-de="04-resumen-pago" data-desp="-362px"></div></figure>
+    <figure><figcaption><b>3</b>Reclama con tu ficho QR</figcaption><div class="clon" data-de="06-mi-ficho"></div></figure>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
 <!-- 01 · INICIO DE SESIÓN                                                 -->
 <!-- ===================================================================== -->
 <section class="tablero" id="01-inicio-sesion">
@@ -514,7 +555,7 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-cuerpo">
     <div class="telefonos">
       <div>
-        <div class="tel"><div class="pantalla">
+        <div class="tel" data-archivo="01-inicio-sesion"><div class="pantalla">
           <div class="barra-estado"><span>9:16</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <div class="app-header" style="flex-direction:column;align-items:flex-start;gap:14px;padding:26px 22px 30px">
             <div class="marca rel" style="font-size:22px"><span class="logo" style="width:48px;height:48px;border-radius:14px"><svg class="ico" style="width:28px;height:28px"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Universidad de Santander</small></span><b class="n abs" style="right:-30px">1</b></div>
@@ -539,7 +580,7 @@ body.wf .solo-mk{display:none!important}
       </div>
 
       <div>
-        <div class="tel"><div class="pantalla">
+        <div class="tel" data-archivo="01-inicio-sesion-error"><div class="pantalla">
           <div class="barra-estado"><span>9:16</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <div class="app-header" style="flex-direction:column;align-items:flex-start;gap:14px;padding:26px 22px 30px">
             <div class="marca" style="font-size:22px"><span class="logo" style="width:48px;height:48px;border-radius:14px"><svg class="ico" style="width:28px;height:28px"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Universidad de Santander</small></span></div>
@@ -585,7 +626,8 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-titulo"><h2>02 · Menú del día</h2><div class="reqs"><span class="req">RF03</span><span class="req">RF04</span><span class="req">RF05</span><span class="req">RNF04</span></div></div>
   <p class="tablero-sub">Paso 1 de 3. Un estudiante regular elige almuerzo completo, una proteína y hasta dos acompañamientos. La hora límite y las porciones siempre están a la vista.</p>
   <div class="tablero-cuerpo">
-    <div class="tel"><div class="pantalla">
+    <div class="telefonos"><div>
+    <div class="tel" data-archivo="02-menu-del-dia"><div class="pantalla">
       <div class="barra-estado"><span>9:18</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
       <header class="app-header">
         <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
@@ -678,6 +720,9 @@ body.wf .solo-mk{display:none!important}
         <button class="btn btn-primario">Continuar al pago<svg class="ico"><use href="#i-flecha-der"/></svg><b class="n abs">9</b></button>
       </div>
     </div></div>
+    <p class="pie-tel">Al abrir: tipo de almuerzo y proteína</p></div>
+    <div><div class="clon" data-archivo="02-menu-del-dia-acompanamientos" data-de="02-menu-del-dia" data-desp="-772px"></div><p class="pie-tel">Al desplazarse: acompañamientos</p></div>
+    </div>
 
     <aside class="notas">
       <h3>Notas del wireframe</h3>
@@ -703,7 +748,7 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-titulo"><h2>03 · Menú desplegable</h2><div class="reqs"><span class="req">RF01</span><span class="req">WCAG 2.2</span></div></div>
   <p class="tablero-sub">El encabezado es el mismo en todas las pantallas del usuario. El menú se abre sobre el contenido y muestra quién inició sesión y con qué perfil.</p>
   <div class="tablero-cuerpo">
-    <div class="tel"><div class="pantalla">
+    <div class="tel" data-archivo="03-menu-navegacion"><div class="pantalla">
       <div class="barra-estado"><span>9:18</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
       <header class="app-header">
         <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
@@ -746,7 +791,8 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-titulo"><h2>04 · Resumen y pago</h2><div class="reqs"><span class="req">RF09</span><span class="req">RF10</span><span class="req">RNF05</span></div></div>
   <p class="tablero-sub">Paso 2 de 3 para estudiante regular y empleado UDES. El total lo calcula el backend. Al elegir un medio de pago se despliegan solo los datos que ese medio necesita.</p>
   <div class="tablero-cuerpo">
-    <div class="tel"><div class="pantalla">
+    <div class="telefonos"><div>
+    <div class="tel" data-archivo="04-resumen-pago"><div class="pantalla">
       <div class="barra-estado"><span>9:19</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
       <header class="app-header">
         <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
@@ -808,6 +854,9 @@ body.wf .solo-mk{display:none!important}
         <p class="nota-peq"><svg class="ico"><use href="#i-candado"/></svg>Conexión segura · Reintentar nunca cobra dos veces</p>
       </div>
     </div></div>
+    <p class="pie-tel">Al abrir: pedido y total</p></div>
+    <div><div class="clon" data-archivo="04-resumen-pago-medios" data-de="04-resumen-pago" data-desp="-455px"></div><p class="pie-tel">Al desplazarse: medio de pago</p></div>
+    </div>
     <aside class="notas">
       <h3>Notas del wireframe</h3>
       <ol>
@@ -829,7 +878,7 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-titulo"><h2>05 · Resumen con subsidio</h2><div class="reqs"><span class="req">RF06</span><span class="req">RNF04</span></div></div>
   <p class="tablero-sub">Paso 2 de 3 para el estudiante subsidiado. No hay medios de pago: el backend verifica el beneficio diario y la reserva se confirma con total $0.</p>
   <div class="tablero-cuerpo">
-    <div class="tel"><div class="pantalla">
+    <div class="tel" data-archivo="05-resumen-subsidiado"><div class="pantalla">
       <div class="barra-estado"><span>8:42</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
       <header class="app-header">
         <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
@@ -850,8 +899,7 @@ body.wf .solo-mk{display:none!important}
           <div class="filas">
             <div class="fila"><span>Almuerzo</span><b>Completo</b></div>
             <div class="fila"><span>Proteína</span><b>Carne en bistec</b></div>
-            <div class="fila"><span>Acompañamientos</span><b>Arroz blanco<br>Frijoles</b></div>
-            <div class="fila"><span>Reclamo</span><b>Cafetería principal<br>Zona de buses</b></div>
+            <div class="fila"><span>Acompañamientos</span><b>Arroz blanco, Frijoles</b></div>
           </div>
         </div>
 
@@ -862,7 +910,7 @@ body.wf .solo-mk{display:none!important}
             <div class="fila"><span>Subsidio UDES</span><b style="color:var(--exito)">−$12.000</b></div>
           </div>
           <div class="total exito"><div><span class="lbl">Total</span><small>No necesitas pagar</small></div><span class="monto">$0</span><b class="n abs">3</b></div>
-          <p class="pista"><svg class="ico"><use href="#i-info"/></svg><span>Beneficio diario disponible: <b>1 de 1</b>. Puedes usar un subsidio por día.</span></p>
+          <p class="pista"><svg class="ico"><use href="#i-info"/></svg><span>Beneficio de hoy: <b>disponible</b> (1 por día).</span></p>
         </div>
       </main>
       <div class="barra-accion">
@@ -890,7 +938,8 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-titulo"><h2>06 · Mi Ficho</h2><div class="reqs"><span class="req">RF07</span><span class="req">RF10</span></div></div>
   <p class="tablero-sub">Paso 3 de 3. Se muestra apenas el pago es aprobado o el subsidio se aplica. Es la misma pantalla de "Mi Ficho" en el menú.</p>
   <div class="tablero-cuerpo">
-    <div class="tel"><div class="pantalla">
+    <div class="telefonos"><div>
+    <div class="tel" data-archivo="06-mi-ficho"><div class="pantalla">
       <div class="barra-estado"><span>9:20</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
       <header class="app-header">
         <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
@@ -930,6 +979,9 @@ body.wf .solo-mk{display:none!important}
         <button class="btn btn-texto peligro">Cancelar reserva<b class="n abs" style="right:70px">6</b></button>
       </main>
     </div></div>
+    <p class="pie-tel">Al abrir: estado y código QR</p></div>
+    <div><div class="clon" data-archivo="06-mi-ficho-detalles" data-de="06-mi-ficho" data-desp="-622px"></div><p class="pie-tel">Al desplazarse: detalles y aviso</p></div>
+    </div>
     <aside class="notas">
       <h3>Notas del wireframe</h3>
       <ol>
@@ -951,7 +1003,7 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-titulo"><h2>07 · Mis reservas</h2><div class="reqs"><span class="req">RF07</span><span class="req">RF10</span></div></div>
   <p class="tablero-sub">Historial del usuario con el estado de cada reserva y acceso directo al ficho vigente.</p>
   <div class="tablero-cuerpo">
-    <div class="tel"><div class="pantalla">
+    <div class="tel" data-archivo="07-mis-reservas"><div class="pantalla">
       <div class="barra-estado"><span>9:25</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
       <header class="app-header">
         <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Cafetería principal</small></span></div>
@@ -1009,7 +1061,7 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-cuerpo columna">
     <div class="telefonos rejilla-3">
       <div>
-        <div class="tel mini"><div class="pantalla">
+        <div class="tel mini" data-archivo="08-error-fuera-de-horario"><div class="pantalla">
           <div class="barra-estado"><span>10:41</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass</span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
           <div class="estado-pantalla">
@@ -1022,7 +1074,7 @@ body.wf .solo-mk{display:none!important}
         <p class="pie-tel">Fuera de horario</p>
       </div>
       <div>
-        <div class="tel mini"><div class="pantalla">
+        <div class="tel mini" data-archivo="08-error-plato-agotado"><div class="pantalla">
           <div class="barra-estado"><span>9:19</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass</span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
           <div class="estado-pantalla">
@@ -1035,7 +1087,7 @@ body.wf .solo-mk{display:none!important}
         <p class="pie-tel">Plato agotado</p>
       </div>
       <div>
-        <div class="tel mini"><div class="pantalla">
+        <div class="tel mini" data-archivo="08-error-pago-rechazado"><div class="pantalla">
           <div class="barra-estado"><span>9:20</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass</span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
           <div class="estado-pantalla">
@@ -1048,7 +1100,7 @@ body.wf .solo-mk{display:none!important}
         <p class="pie-tel">Pago rechazado</p>
       </div>
       <div>
-        <div class="tel mini"><div class="pantalla">
+        <div class="tel mini" data-archivo="08-error-subsidio-no-disponible"><div class="pantalla">
           <div class="barra-estado"><span>8:44</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass</span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
           <div class="estado-pantalla">
@@ -1061,7 +1113,7 @@ body.wf .solo-mk{display:none!important}
         <p class="pie-tel">Subsidio no disponible</p>
       </div>
       <div>
-        <div class="tel mini"><div class="pantalla">
+        <div class="tel mini" data-archivo="08-error-sin-conexion"><div class="pantalla">
           <div class="barra-estado"><span>9:20</span><span class="iconos"><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass</span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
           <div class="estado-pantalla">
@@ -1096,7 +1148,7 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-titulo"><h2>09 · Administrador · Menú del día</h2><div class="reqs"><span class="req">RF02</span><span class="req">RF03</span><span class="req">RF04</span></div></div>
   <p class="tablero-sub">El administrador carga, edita, publica, cierra o elimina el menú de una fecha y controla las porciones de cada opción.</p>
   <div class="tablero-cuerpo columna">
-    <div class="pc">
+    <div class="pc" data-archivo="09-admin-menu-del-dia">
       <div class="ventana"><i></i><i></i><i></i><span class="url"><svg class="ico"><use href="#i-candado"/></svg>UDES FoodPass · /admin/menu</span></div>
       <header class="admin-header">
         <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div>
@@ -1203,7 +1255,7 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-titulo"><h2>10 · Administrador · Catálogos</h2><div class="reqs"><span class="req">RF02</span></div></div>
   <p class="tablero-sub">Proteínas, acompañamientos y tipos de almuerzo que luego se agregan al menú de cada día.</p>
   <div class="tablero-cuerpo columna">
-    <div class="pc">
+    <div class="pc" data-archivo="10-admin-catalogos">
       <div class="ventana"><i></i><i></i><i></i><span class="url"><svg class="ico"><use href="#i-candado"/></svg>UDES FoodPass · /admin/catalogos</span></div>
       <header class="admin-header">
         <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div>
@@ -1275,7 +1327,7 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-titulo"><h2>11 · Administrador · Horarios de reserva</h2><div class="reqs"><span class="req">RF04</span></div></div>
   <p class="tablero-sub">Ventana de reserva por tipo de usuario (<code>configuracion_reserva</code>), con excepciones para usuarios puntuales.</p>
   <div class="tablero-cuerpo columna">
-    <div class="pc">
+    <div class="pc" data-archivo="11-admin-horarios">
       <div class="ventana"><i></i><i></i><i></i><span class="url"><svg class="ico"><use href="#i-candado"/></svg>UDES FoodPass · /admin/horarios</span></div>
       <header class="admin-header">
         <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div>
@@ -1354,7 +1406,7 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-cuerpo columna">
     <div class="telefonos">
       <div>
-        <div class="tel"><div class="pantalla">
+        <div class="tel" data-archivo="12-admin-validar-escanear"><div class="pantalla">
           <div class="barra-estado"><span>12:13</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
           <main class="contenido">
@@ -1373,7 +1425,7 @@ body.wf .solo-mk{display:none!important}
         <p class="pie-tel">1 · Escanear</p>
       </div>
       <div>
-        <div class="tel"><div class="pantalla">
+        <div class="tel" data-archivo="12-admin-validar-pedido"><div class="pantalla">
           <div class="barra-estado"><span>12:14</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
           <main class="contenido">
@@ -1398,7 +1450,7 @@ body.wf .solo-mk{display:none!important}
         <p class="pie-tel">2 · Revisar pedido</p>
       </div>
       <div>
-        <div class="tel"><div class="pantalla">
+        <div class="tel" data-archivo="12-admin-validar-entregado"><div class="pantalla">
           <div class="barra-estado"><span>12:14</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
           <div class="estado-pantalla">
@@ -1411,7 +1463,7 @@ body.wf .solo-mk{display:none!important}
         <p class="pie-tel">3 · Entregado</p>
       </div>
       <div>
-        <div class="tel"><div class="pantalla">
+        <div class="tel" data-archivo="12-admin-validar-ficho-usado"><div class="pantalla">
           <div class="barra-estado"><span>12:20</span><span class="iconos"><svg width="17" height="11" fill="currentColor"><use href="#e-senal"/></svg><svg width="16" height="12" fill="currentColor"><use href="#e-wifi"/></svg><svg width="26" height="12" fill="currentColor"><use href="#e-bateria"/></svg></span></div>
           <header class="app-header"><div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div><button class="btn-menu"><svg class="ico"><use href="#i-menu"/></svg>Menú</button></header>
           <div class="estado-pantalla">
@@ -1452,7 +1504,7 @@ body.wf .solo-mk{display:none!important}
   <div class="tablero-titulo"><h2>13 · Administrador · Entregas del día</h2><div class="reqs"><span class="req">RF08</span></div></div>
   <p class="tablero-sub">Seguimiento de lo entregado y lo pendiente, con quién validó cada ficho.</p>
   <div class="tablero-cuerpo columna">
-    <div class="pc">
+    <div class="pc" data-archivo="13-admin-entregas">
       <div class="ventana"><i></i><i></i><i></i><span class="url"><svg class="ico"><use href="#i-candado"/></svg>UDES FoodPass · /admin/entregas</span></div>
       <header class="admin-header">
         <div class="marca"><span class="logo"><svg class="ico"><use href="#i-cubiertos"/></svg></span><span>UDES FoodPass<small>Administración</small></span></div>
@@ -1513,6 +1565,25 @@ body.wf .solo-mk{display:none!important}
   // Cambia entre wireframe y mockup con ?modo=wireframe | ?modo=mockup
   const modo = new URLSearchParams(location.search).get('modo') === 'wireframe' ? 'wireframe' : 'mockup';
   document.body.className = modo === 'wireframe' ? 'wf' : 'mk';
+  // ?exportar=1 quita títulos y textos para generar imágenes limpias
+  if (new URLSearchParams(location.search).has('exportar')) document.body.classList.add('exportar');
+  // Copia un teléfono de otra pantalla (portada y marcos desplazados), con desplazamiento opcional
+  document.querySelectorAll('.clon').forEach(c => {
+    const origen = document.getElementById(c.dataset.de)?.querySelector('.tel');
+    if (!origen) return;
+    const copia = origen.cloneNode(true);
+    if (c.dataset.desp) copia.querySelector('.contenido')?.style.setProperty('--desp', c.dataset.desp);
+    if (c.dataset.archivo) copia.dataset.archivo = c.dataset.archivo; else delete copia.dataset.archivo;
+    c.replaceWith(copia);
+  });
+  if (document.body.classList.contains('exportar')) {
+    document.querySelectorAll('[data-archivo]').forEach(el => {
+      const marco = document.createElement('div');
+      marco.className = 'marco-export';
+      el.replaceWith(marco);
+      marco.append(el);
+    });
+  }
   document.querySelectorAll('.selector-modo a').forEach(a => {
     if (a.dataset.modo === modo) a.setAttribute('aria-current', 'page');
   });
