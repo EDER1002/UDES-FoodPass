@@ -52,6 +52,13 @@ export function sumarDias(fecha, dias) {
   return d.toISOString().slice(0, 10);
 }
 
+/** '2026-10-19' → '19/10/2026' */
+export function fechaLegible(fecha) {
+  if (!fecha) return '';
+  const [anio, mes, dia] = fecha.split('-');
+  return `${dia}/${mes}/${anio}`;
+}
+
 /** '06:00:00' → '6:00 a. m.' */
 export function horaLegible(hora) {
   const [h, m] = hora.split(':').map(Number);
