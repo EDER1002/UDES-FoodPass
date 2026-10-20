@@ -16,6 +16,15 @@ export class PagoRepositorio {
     return rows[0] ?? null;
   }
 
+  /** Pagos que esperan la respuesta de la pasarela, del más reciente al más antiguo. */
+  async listarPendientes(limite = 10) {
+    const { rows } = await this.db.consulta(
+      "SELECT * FROM pago WHERE estado_pago = 'PENDIENTE' ORDER BY id_pago DESC LIMIT $1",
+      [limite],
+    );
+    return rows;
+  }
+
   async crearPendiente(p, cliente) {
     try {
       const { rows } = await this.db.consulta(

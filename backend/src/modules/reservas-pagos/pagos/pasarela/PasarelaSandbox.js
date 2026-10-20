@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
  * Imita el comportamiento de una pasarela como Wompi o ePayco con datos de
  * prueba fijos, para poder probar aprobaciones, rechazos y pagos pendientes.
  * Cuando exista un proveedor real, se crea otro adaptador con los mismos
- * métodos (cobrar, reembolsar, bancosPse) y se conecta en app.js.
+ * métodos (cobrar, bancosPse) y se conecta en app.js.
  */
 export const DATOS_DE_PRUEBA = Object.freeze({
   tarjetaAprobada: '4242424242424242',
@@ -50,10 +50,5 @@ export class PasarelaSandbox {
       default:
         return respuesta('RECHAZADO', 'Medio de pago no soportado por la pasarela.');
     }
-  }
-
-  /** Reembolso simulado (regla 9). */
-  async reembolsar({ referencia, monto }) {
-    return { estado: 'REEMBOLSADO', referencia, monto };
   }
 }
