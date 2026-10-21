@@ -46,8 +46,8 @@ export class ValidacionQRRepositorio {
     return rows[0] ?? null;
   }
 
-  async marcarExpirado(idFicho) {
-    await this.db.consulta(`UPDATE ficho_qr SET estado = 'EXPIRADO' WHERE id_ficho = $1 AND estado = 'ACTIVO'`, [idFicho]);
+  async marcarExpirado(idFicho, cliente = null) {
+    await this.db.consulta(`UPDATE ficho_qr SET estado = 'EXPIRADO' WHERE id_ficho = $1 AND estado = 'ACTIVO'`, [idFicho], cliente);
   }
 
   async anularPorReserva(idReserva, cliente) {
@@ -64,8 +64,8 @@ export class ValidacionQRRepositorio {
     return rows[0];
   }
 
-  async entregaPorFicho(idFicho) {
-    const { rows } = await this.db.consulta('SELECT * FROM entrega WHERE id_ficho = $1', [idFicho]);
+  async entregaPorFicho(idFicho, cliente = null) {
+    const { rows } = await this.db.consulta('SELECT * FROM entrega WHERE id_ficho = $1', [idFicho], cliente);
     return rows[0] ?? null;
   }
 

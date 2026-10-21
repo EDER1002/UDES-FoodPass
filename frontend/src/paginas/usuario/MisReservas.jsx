@@ -9,13 +9,14 @@ export function MisReservas() {
   const { api } = useSesion();
   const { datos, error, cargando, recargar } = useDatos((senal) => api('/reservas/mias', { senal }), [api]);
 
-  if (cargando) return <Cargando texto="Cargando tus reservas…" />;
+  if (cargando) return <Cargando texto="Cargando tus pagos y reservas…" />;
   if (error) return <div className="contenedor"><PantallaDeError error={error} alReintentar={recargar} /></div>;
   const hoy = hoyEnBogota();
 
   return (
     <div className="contenedor">
-      <h1 className="titulo-pantalla">Mis reservas</h1>
+      <h1 className="titulo-figma">Pagos</h1>
+      <p className="nota-peq" style={{ marginTop: -10 }}>Tus reservas y el estado de cada pago</p>
       {datos.reservas.length === 0 ? (
         <EstadoPantalla icono="lista" tono="info" titulo="Aún no tienes reservas" alerta={false}
           acciones={<Link to="/" className="btn btn-primario">Reservar mi almuerzo</Link>}>
@@ -34,7 +35,7 @@ function TarjetaReserva({ reserva: r, esHoy }) {
   const pago = r.pago;
   const lineaPago = r.tipoReserva === 'SUBSIDIADA' ? 'Subsidio · $0' : `${NOMBRE_METODO[pago?.metodo] ?? 'Sin pagar'} · ${dinero(r.valorTotal)}`;
   return (
-    <li className={`tarjeta ${esHoy && r.estado === 'CONFIRMADA' ? 'destacada' : ''}`}>
+    <li className="tarjeta" style={esHoy && r.estado === 'CONFIRMADA' ? { borderColor: 'var(--dorado)', borderWidth: 2 } : undefined}>
       <div className="reserva-cab">
         <span className="reserva-fecha">{esHoy ? `Hoy · ${fechaCorta(r.fechaReserva)}` : mayuscula(fechaCorta(r.fechaReserva))}</span>
         <EstadoReserva estado={r.estado} />
@@ -54,7 +55,7 @@ function TarjetaReserva({ reserva: r, esHoy }) {
           {lineaPago}
           {r.estado === 'ENTREGADA' && r.ficho?.fechaUso ? ` · Entregado a las ${horaDeInstante(r.ficho.fechaUso)}` : ''}
         </span>
-        {esHoy && r.estado === 'CONFIRMADA' && <Link to="/mi-ficho" className="volver">Ver ficho<Icono nombre="flecha-der" /></Link>}
+        {esHoy && r.estado === 'CONFIRMADA' && <Link to="/qr" className="volver">Ver mi QR<Icono nombre="flecha-der" /></Link>}
         {r.estado === 'PENDIENTE_PAGO' && (
           <Link to={`/reserva/${r.idReserva}/pago`} className="volver">
             {pago?.estado === 'PENDIENTE' ? 'Ver estado del pago' : 'Continuar al pago'}<Icono nombre="flecha-der" />

@@ -12,6 +12,9 @@ export class ErrorApi extends Error {
 
 export const MENSAJE_SIN_CONEXION = 'No pudimos comunicarnos con el sistema. Revisa tus datos móviles o el Wi‑Fi.';
 
+/** Si el servidor no responde en este tiempo, se trata como "sin conexión" (reintentar es seguro). */
+const ESPERA_MAXIMA_MS = 20_000;
+
 /**
  * Llama a la API REST. El frontend solo presenta el flujo: precios,
  * porciones, horarios, pagos y fichos los decide siempre el backend.
@@ -28,10 +31,11 @@ export async function llamarApi(ruta, { metodo = 'GET', cuerpo, token, encabezad
         ...encabezados,
       },
       body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
-      signal: senal,
+      signal: conLimiteDeTiempo(senal),
     });
   } catch (error) {
-    if (error.name === 'AbortError') throw error;
+    // Cancelada por la pantalla (la persona se fue): se propaga tal cual.
+    if (error.name === 'AbortError' && senal?.aborted) throw error;
     throw new ErrorApi('SIN_CONEXION', MENSAJE_SIN_CONEXION, 0);
   }
   if (respuesta.status === 204) return null;
@@ -46,6 +50,14 @@ export async function llamarApi(ruta, { metodo = 'GET', cuerpo, token, encabezad
     throw new ErrorApi(datos?.error?.codigo ?? 'ERROR', datos?.error?.mensaje ?? 'Ocurrió un error inesperado.', respuesta.status, datos?.error?.detalles);
   }
   return datos;
+}
+
+/** Une la señal de la pantalla (si hay) con un límite de tiempo, en los navegadores que lo permiten. */
+function conLimiteDeTiempo(senal) {
+  if (typeof AbortSignal.timeout !== 'function') return senal;
+  const limite = AbortSignal.timeout(ESPERA_MAXIMA_MS);
+  if (!senal) return limite;
+  return typeof AbortSignal.any === 'function' ? AbortSignal.any([senal, limite]) : senal;
 }
 
 /**

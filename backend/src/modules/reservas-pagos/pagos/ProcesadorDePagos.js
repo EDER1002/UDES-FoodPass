@@ -33,11 +33,19 @@ export class ProcesadorDePagos {
       if (antesDeCobrar) await antesDeCobrar(tx);
       return this.pagos.crearPendiente(pago, tx);
     }, cliente);
-    const resultado = await this.#estrategia.procesarTransaccion({
-      referencia: registrado.referencia_transaccion,
-      monto: registrado.monto,
-      datos: pago.datos,
-    });
+    let resultado;
+    try {
+      resultado = await this.#estrategia.procesarTransaccion({
+        referencia: registrado.referencia_transaccion,
+        monto: registrado.monto,
+        datos: pago.datos,
+      });
+    } catch {
+      // Sin respuesta de la pasarela el pago no puede quedar PENDIENTE para siempre.
+      // En el sandbox un fallo significa que no hubo cobro; con una pasarela real
+      // habría que consultar el estado de la transacción por su referencia.
+      resultado = { estado: 'RECHAZADO', motivo: 'No pudimos comunicarnos con la entidad de pago.' };
+    }
     return { pago: registrado, resultado, repetido: false };
   }
 

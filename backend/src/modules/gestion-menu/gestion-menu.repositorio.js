@@ -14,8 +14,12 @@ export class GestionMenuRepositorio {
     return rows[0] ?? null;
   }
 
-  async menuPorId(idMenu, cliente) {
-    const { rows } = await this.db.consulta(`SELECT ${COLUMNAS_MENU} FROM menu WHERE id_menu = $1`, [idMenu], cliente);
+  async menuPorId(idMenu, cliente, { bloquear = false } = {}) {
+    const { rows } = await this.db.consulta(
+      `SELECT ${COLUMNAS_MENU} FROM menu WHERE id_menu = $1 ${bloquear ? 'FOR UPDATE' : ''}`,
+      [idMenu],
+      cliente,
+    );
     return rows[0] ?? null;
   }
 
@@ -174,8 +178,8 @@ export class GestionMenuRepositorio {
     return rows;
   }
 
-  async proteinasPorIds(ids) {
-    const { rows } = await this.db.consulta('SELECT * FROM proteina WHERE id_proteina = ANY($1::int[])', [ids]);
+  async proteinasPorIds(ids, cliente = null) {
+    const { rows } = await this.db.consulta('SELECT * FROM proteina WHERE id_proteina = ANY($1::int[])', [ids], cliente);
     return rows;
   }
 
@@ -202,8 +206,8 @@ export class GestionMenuRepositorio {
     return rows;
   }
 
-  async acompanamientosPorIds(ids) {
-    const { rows } = await this.db.consulta('SELECT * FROM acompanamiento WHERE id_acompanamiento = ANY($1::int[])', [ids]);
+  async acompanamientosPorIds(ids, cliente = null) {
+    const { rows } = await this.db.consulta('SELECT * FROM acompanamiento WHERE id_acompanamiento = ANY($1::int[])', [ids], cliente);
     return rows;
   }
 
@@ -224,8 +228,8 @@ export class GestionMenuRepositorio {
     return rows[0] ?? null;
   }
 
-  async tiposPorIds(ids) {
-    const { rows } = await this.db.consulta('SELECT * FROM tipo_almuerzo WHERE id_tipo_almuerzo = ANY($1::int[])', [ids]);
+  async tiposPorIds(ids, cliente = null) {
+    const { rows } = await this.db.consulta('SELECT * FROM tipo_almuerzo WHERE id_tipo_almuerzo = ANY($1::int[])', [ids], cliente);
     return rows;
   }
 }

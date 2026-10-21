@@ -169,6 +169,15 @@ export class ReservaRepositorio {
   }
 
   // ---------- Beneficio subsidiado ----------
+  async crearBeneficio(b, cliente) {
+    await this.db.consulta(
+      `INSERT INTO beneficio_subsidiado (id_rol, id_usuario, codigo_qr_diario, fecha_inicio_vigencia, fecha_fin_vigencia, estado)
+       VALUES ($1, $2, $3, $4, $5, 'ACTIVO')`,
+      [b.idRol, b.idUsuario, b.codigo, b.desde, b.hasta],
+      cliente,
+    );
+  }
+
   async beneficioVigente(idUsuario, fecha, { bloquear = false } = {}, cliente = null) {
     const { rows } = await this.db.consulta(
       `SELECT * FROM beneficio_subsidiado

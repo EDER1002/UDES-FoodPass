@@ -70,11 +70,15 @@ export class ValidacionQRService {
   async registrarEntrega(idFicho, idAdministrador) {
     const { fecha, hora } = this.reloj.partes();
     return this.db.transaccion(async (tx) => {
+      const actual = await this.repo.porId(idFicho, tx);
+      if (!actual) throw noEncontrado('FICHO_NO_ENCONTRADO', 'No existe ese ficho.');
+      // Primero la reserva y luego el ficho, en el mismo orden que cancelarReserva():
+      // así una entrega y una cancelación simultáneas no se bloquean mutuamente.
+      await this.reservas.bloquearReserva(actual.id_reserva, tx);
       const usado = await this.repo.marcarUsado(idFicho, this.reloj.ahora(), tx);
       if (!usado) {
         const ficho = await this.repo.porId(idFicho, tx);
-        if (!ficho) throw noEncontrado('FICHO_NO_ENCONTRADO', 'No existe ese ficho.');
-        await this.#exigirUsable(ficho);
+        await this.#exigirUsable(ficho, tx);
         throw conflicto('FICHO_NO_DISPONIBLE', 'Este ficho no se puede usar.');
       }
       const entrega = await this.repo.crearEntrega({ idFicho, idAdministrador, fecha, hora }, tx);
@@ -89,10 +93,10 @@ export class ValidacionQRService {
   }
 
   /** Map id_reserva → ficho (con la imagen del QR). */
-  async obtenerPorReservas(idsReserva, cliente = null) {
+  async obtenerPorReservas(idsReserva, cliente = null, { sinImagen = false } = {}) {
     const filas = await this.repo.porReservas(idsReserva, cliente);
     const ahora = this.reloj.ahora();
-    return new Map(filas.map((f) => [f.id_reserva, aFicho(f, { ahora })]));
+    return new Map(filas.map((f) => [f.id_reserva, aFicho(f, { ahora, sinImagen })]));
   }
 
   /** Entregas de una fecha con el pedido de cada una. */
@@ -102,9 +106,9 @@ export class ValidacionQRService {
     return filas.map((f) => ({ ...aEntrega(f), token: f.token_unico, reserva: reservas.get(f.id_reserva) ?? null }));
   }
 
-  async #exigirUsable(ficho) {
+  async #exigirUsable(ficho, cliente = null) {
     if (ficho.estado === 'USADO') {
-      const entrega = await this.repo.entregaPorFicho(ficho.id_ficho);
+      const entrega = await this.repo.entregaPorFicho(ficho.id_ficho, cliente);
       const dia = entrega && entrega.fecha_entrega === this.reloj.hoy() ? 'hoy' : `el ${fechaLegible(entrega?.fecha_entrega)}`;
       const cuando = entrega ? `${dia} a las ${horaLegible(entrega.hora_entrega)}` : 'antes';
       throw conflicto('FICHO_YA_USADO', `Este ficho ya se usó ${cuando}: no entregues otro almuerzo.`, {
@@ -116,7 +120,7 @@ export class ValidacionQRService {
       });
     }
     if (ficho.estado === 'EXPIRADO' || ficho.fecha_expiracion <= this.reloj.ahora()) {
-      if (ficho.estado === 'ACTIVO') await this.repo.marcarExpirado(ficho.id_ficho);
+      if (ficho.estado === 'ACTIVO') await this.repo.marcarExpirado(ficho.id_ficho, cliente);
       throw new ErrorAplicacion('FICHO_EXPIRADO', 'Este ficho ya no es válido: venció o la reserva se canceló.', 410);
     }
   }

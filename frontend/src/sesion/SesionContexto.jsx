@@ -14,13 +14,27 @@ export function ProveedorSesion({ children }) {
     setSesion(null);
   }, []);
 
-  const iniciarSesion = useCallback(async (correo, contrasena) => {
-    const { token, usuario } = await llamarApi('/auth/login', { metodo: 'POST', cuerpo: { correo, contrasena } });
+  const guardar = useCallback((token, usuario) => {
     const nueva = { token, usuario };
     almacen.guardar(localStorage, CLAVE, nueva);
     setSesion(nueva);
-    return usuario;
   }, []);
+
+  const iniciarSesion = useCallback(async (correo, contrasena) => {
+    const { token, usuario } = await llamarApi('/auth/login', { metodo: 'POST', cuerpo: { correo, contrasena } });
+    guardar(token, usuario);
+    return usuario;
+  }, [guardar]);
+
+  /**
+   * Crea la cuenta. El estudiante regular queda con sesión iniciada; los
+   * demás roles quedan en revisión hasta que un administrador los apruebe.
+   */
+  const registrarse = useCallback(async (datos) => {
+    const resultado = await llamarApi('/auth/registro', { metodo: 'POST', cuerpo: datos });
+    if (resultado.token) guardar(resultado.token, resultado.usuario);
+    return resultado;
+  }, [guardar]);
 
   /** Llama a la API con el token. Si la sesión venció, la cierra. */
   const api = useCallback(
@@ -36,8 +50,8 @@ export function ProveedorSesion({ children }) {
   );
 
   const valor = useMemo(
-    () => ({ usuario: sesion?.usuario ?? null, token: sesion?.token ?? null, iniciarSesion, cerrarSesion, api }),
-    [sesion, iniciarSesion, cerrarSesion, api],
+    () => ({ usuario: sesion?.usuario ?? null, token: sesion?.token ?? null, iniciarSesion, registrarse, cerrarSesion, api }),
+    [sesion, iniciarSesion, registrarse, cerrarSesion, api],
   );
   return <SesionContexto.Provider value={valor}>{children}</SesionContexto.Provider>;
 }

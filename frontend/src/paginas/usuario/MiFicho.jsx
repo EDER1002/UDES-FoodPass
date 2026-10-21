@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Aviso, Cargando, EstadoPantalla, PantallaDeError, Pasos } from '../../componentes/Comunes.jsx';
+import { Aviso, Cargando, EstadoPantalla, PantallaDeError } from '../../componentes/Comunes.jsx';
 import { Icono } from '../../componentes/Icono.jsx';
 import { useSesion } from '../../sesion/SesionContexto.jsx';
 import { NOMBRE_METODO, dinero, fechaLarga, horaDeInstante, mayuscula } from '../../utilidades/formato.js';
@@ -20,9 +20,9 @@ export function MiFicho() {
   if (error?.codigo === 'SIN_FICHO') {
     return (
       <div className="contenedor">
-        <EstadoPantalla icono="qr" tono="info" titulo="Aún no tienes ficho para hoy" alerta={false}
-          acciones={<><Link to="/" className="btn btn-primario">Reservar mi almuerzo</Link><Link to="/mis-reservas" className="btn btn-secundario">Ver mis reservas</Link></>}>
-          <p>Tu ficho aparece aquí apenas confirmas una reserva.</p>
+        <EstadoPantalla icono="qr" tono="info" titulo="Aún no tienes QR para hoy" alerta={false}
+          acciones={<><Link to="/" className="btn btn-primario">Reservar mi almuerzo</Link><Link to="/pagos" className="btn btn-secundario">Ver mis pagos</Link></>}>
+          <p>Tu QR aparece aquí apenas confirmas una reserva.</p>
         </EstadoPantalla>
       </div>
     );
@@ -34,7 +34,7 @@ export function MiFicho() {
       <div className="contenedor">
         <EstadoPantalla icono="check-circulo" tono="ok" titulo="Reserva cancelada" alerta={false}
           acciones={<Link to="/" className="btn btn-primario">Volver al menú</Link>}>
-          <p>Tu ficho quedó anulado y las porciones volvieron al menú.</p>
+          <p>Tu QR quedó anulado y las porciones volvieron al menú.</p>
           {cancelada.pago?.estado === 'REEMBOLSADO' && <p>Te devolvimos {dinero(cancelada.pago.monto)} (reembolso simulado).</p>}
           {cancelada.tipoReserva === 'SUBSIDIADA' && <p>Tu subsidio de hoy queda disponible otra vez.</p>}
         </EstadoPantalla>
@@ -61,45 +61,44 @@ export function MiFicho() {
     }
   };
 
+  const banner = usado
+    ? { clase: 'usado', icono: 'entrega', texto: 'Almuerzo entregado' }
+    : vencido
+      ? { clase: 'vencido', icono: 'x-circulo', texto: 'Ficho no válido' }
+      : { clase: '', icono: 'check-circulo', texto: 'Reserva confirmada' };
+  const pago = reserva.tipoReserva === 'SUBSIDIADA' ? 'Subsidio · $0' : `${NOMBRE_METODO[reserva.pago?.metodo] ?? ''} · ${dinero(reserva.valorTotal)}`;
+
   return (
     <div className="contenedor">
-      {recienConfirmada && <Pasos actual={3} texto="¡Listo!" siguiente="Reserva completa" />}
-      {recienConfirmada && (
-        <Aviso tono="exito" icono="check-circulo" titulo="Reserva confirmada" rol="status">
-          {recienConfirmada.subsidio ? 'Subsidio aplicado · $0' : `Pago aprobado · ${NOMBRE_METODO[recienConfirmada.metodo] ?? ''} · ${dinero(recienConfirmada.monto)}`}
-        </Aviso>
-      )}
-      {usado && (
-        <Aviso tono="" icono="entrega" titulo="Ya reclamaste tu almuerzo">
-          Entregado hoy a las {horaDeInstante(ficho.fechaUso)}. ¡Buen provecho!
-        </Aviso>
-      )}
-      {vencido && <Aviso tono="peligro" icono="x-circulo" titulo="Este ficho ya no es válido">Venció o la reserva se canceló.</Aviso>}
+      <Link to="/" className="cerrar-circulo" aria-label="Volver al inicio"><Icono nombre="cerrar" /></Link>
 
-      <section className={`tarjeta ficho ${usado || vencido ? 'usado' : ''}`} aria-labelledby="titulo-ficho">
-        <h2 id="titulo-ficho">
-          Mi Ficho
-          {usado ? (
-            <span className="estado info"><Icono nombre="entrega" />Usado</span>
-          ) : vencido ? (
-            <span className="estado peligro"><Icono nombre="x-circulo" />Vencido</span>
-          ) : (
-            <span className="estado alerta"><Icono nombre="alerta" />Uso único</span>
-          )}
-        </h2>
+      <h1 className="solo-lectores">Mi QR del día</h1>
+      <p className={`banner-ficho ${banner.clase}`} role={recienConfirmada ? 'status' : undefined}>
+        <Icono nombre={banner.icono} />{banner.texto}<Icono nombre={banner.icono} />
+      </p>
+      {recienConfirmada && (
+        <p className="nota-peq" style={{ marginTop: -6 }}>
+          {recienConfirmada.subsidio ? 'Subsidio aplicado · $0' : `Pago aprobado · ${NOMBRE_METODO[recienConfirmada.metodo] ?? ''} · ${dinero(recienConfirmada.monto)}`}
+        </p>
+      )}
+      {usado && <p className="nota-peq">Entregado hoy a las {horaDeInstante(ficho.fechaUso)}. ¡Buen provecho!</p>}
+      {vencido && <p className="nota-peq">Venció o la reserva se canceló.</p>}
+
+      <section className={`tarjeta-qr ${usado || vencido ? 'apagado' : ''}`} aria-label="Tu código QR">
         {/* El QR lo genera el backend y contiene solo el token. */}
-        <div className="qr-caja">
-          <img src={ficho.codigoQr} alt={`Código QR de tu ficho. Token ${ficho.token}`} width="260" height="260" />
-        </div>
-        <div>
-          <div className="token-lbl">Token</div>
-          <div className="token">{ficho.token}</div>
-        </div>
+        <img src={ficho.codigoQr} alt={`Código QR de tu ficho. Token ${ficho.token}`} width="240" height="240" />
+        <p className="token-figma"><span>Token Único:</span> <b>{ficho.token}</b></p>
         <p className="ayuda-centro">Muéstralo en la caja de la cafetería. Si la cámara no lo lee, dicta el token. Sube el brillo de tu pantalla.</p>
       </section>
 
-      <section className="tarjeta" aria-label="Detalles de la reserva">
-        <dl className="filas">
+      <div className="nota-figma">
+        <b>Nota:</b>
+        El QR es de un único uso al día.{!usado && !vencido && ' Deja de servir apenas lo escanean; no compartas capturas de pantalla.'}
+      </div>
+
+      <details className="tarjeta" style={{ gap: 0 }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 700, color: 'var(--azul-udes)' }}>Detalles de la reserva</summary>
+        <dl className="filas" style={{ marginTop: 12 }}>
           <div className="fila"><dt>Fecha</dt><dd>{mayuscula(fechaLarga(reserva.fechaReserva, { conAnio: true }))}</dd></div>
           <div className="fila">
             <dt>Almuerzo</dt>
@@ -110,24 +109,19 @@ export function MiFicho() {
             </dd>
           </div>
           <div className="fila"><dt>Lugar de reclamo</dt><dd>{reserva.lugarReclamo.split(' · ').map((p) => <span key={p} style={{ display: 'block' }}>{p}</span>)}</dd></div>
-          <div className="fila"><dt>Pago</dt><dd>{reserva.tipoReserva === 'SUBSIDIADA' ? 'Subsidio · $0' : `${NOMBRE_METODO[reserva.pago?.metodo] ?? ''} · ${dinero(reserva.valorTotal)}`}</dd></div>
+          <div className="fila"><dt>Pago</dt><dd>{pago}</dd></div>
           {!usado && <div className="fila"><dt>Válido hasta</dt><dd>Hoy, {horaDeInstante(ficho.fechaExpiracion)}</dd></div>}
         </dl>
-      </section>
-
-      {!usado && !vencido && (
-        <Aviso tono="alerta" icono="alerta" titulo="Ficho de uso único">Deja de servir apenas lo escanean en la entrega. No compartas capturas de pantalla.</Aviso>
-      )}
+      </details>
 
       {errorCancelacion && <Aviso tono="peligro" icono="x-circulo" titulo="No se pudo cancelar" rol="alert">{errorCancelacion.message}</Aviso>}
 
-      <Link to="/mis-reservas" className="btn btn-secundario">Ver mis reservas</Link>
       {reserva.estado === 'CONFIRMADA' && !confirmarCancelacion && (
         <button type="button" className="btn btn-texto peligro" onClick={() => setConfirmarCancelacion(true)}>Cancelar reserva</button>
       )}
       {confirmarCancelacion && (
         <div className="tarjeta" role="group" aria-labelledby="pregunta-cancelar">
-          <p id="pregunta-cancelar"><b>¿Seguro que quieres cancelar?</b> Tu ficho dejará de servir y las porciones vuelven al menú.
+          <p id="pregunta-cancelar"><b>¿Seguro que quieres cancelar?</b> Tu QR dejará de servir y las porciones vuelven al menú.
             {reserva.tipoReserva === 'PAGADA' ? ' Te devolveremos el pago (reembolso simulado).' : ' Tu subsidio de hoy quedará libre.'}</p>
           <div className="fila-botones">
             <button type="button" className="btn btn-peligro-lleno chico" onClick={cancelar} disabled={cancelando}>{cancelando ? 'Cancelando…' : 'Sí, cancelar'}</button>

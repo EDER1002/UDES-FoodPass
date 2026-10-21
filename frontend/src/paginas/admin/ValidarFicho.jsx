@@ -13,34 +13,41 @@ export function ValidarFicho() {
   const [ocupado, setOcupado] = useState(false);
   const [usarCamara, setUsarCamara] = useState(false);
   const { datos: conteo, recargar: recargarConteo } = useDatos((senal) => api(`/admin/entregas?fecha=${hoyEnBogota()}`, { senal }), [api]);
+  // Número de la última solicitud: una respuesta vieja (red lenta) nunca reemplaza a la más reciente,
+  // así en la caja no aparece el pedido de otra persona.
+  const solicitud = useRef(0);
 
   const validar = useCallback(async (texto) => {
     if (!texto.trim()) return;
+    const numero = ++solicitud.current;
     setOcupado(true);
     try {
       const respuesta = await api('/admin/fichos/validar', { metodo: 'POST', cuerpo: { token: texto } });
-      setVista({ paso: 'pedido', ...respuesta });
+      if (numero === solicitud.current) setVista({ paso: 'pedido', ...respuesta });
     } catch (error) {
-      setVista({ paso: 'error', error });
+      if (numero === solicitud.current) setVista({ paso: 'error', error });
     } finally {
-      setOcupado(false);
+      if (numero === solicitud.current) setOcupado(false);
     }
   }, [api]);
 
   const entregar = async () => {
+    const numero = ++solicitud.current;
     setOcupado(true);
     try {
       const respuesta = await api(`/admin/fichos/${vista.ficho.idFicho}/entregar`, { metodo: 'POST' });
-      setVista({ paso: 'entregado', ...respuesta });
       recargarConteo();
+      if (numero === solicitud.current) setVista({ paso: 'entregado', ...respuesta });
     } catch (error) {
-      setVista({ paso: 'error', error });
+      if (numero === solicitud.current) setVista({ paso: 'error', error });
     } finally {
-      setOcupado(false);
+      if (numero === solicitud.current) setOcupado(false);
     }
   };
 
   const siguiente = () => {
+    solicitud.current += 1;
+    setOcupado(false);
     setToken('');
     setVista({ paso: 'escanear' });
   };
@@ -201,8 +208,17 @@ function Escaner({ alLeer, alApagar }) {
           },
           () => {},
         );
-        if (cancelado) await detener();
-        else setEstado('activa');
+        if (cancelado) {
+          // Se salió de la pantalla mientras la cámara arrancaba: se apaga esta instancia.
+          try {
+            await l.stop();
+            l.clear();
+          } catch {
+            // Ya estaba detenida
+          }
+        } else {
+          setEstado('activa');
+        }
       } catch (e) {
         lector.current = null;
         if (cancelado) return;

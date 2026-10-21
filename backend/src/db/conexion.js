@@ -8,6 +8,8 @@ export function crearPool(urlConexion) {
   return new pg.Pool({
     connectionString: urlConexion,
     max: 20,
+    // Si el pool se agota, falla con un error en vez de esperar para siempre.
+    connectionTimeoutMillis: 5000,
     options: '-c timezone=America/Bogota',
   });
 }

@@ -54,7 +54,7 @@ export class GestionMenuService {
       const agotado = await this.repo.descontar(idMenu, idProteina, ordenados, c);
       if (agotado) {
         await c.query('ROLLBACK TO SAVEPOINT descontar_porcion');
-        return { ok: false, agotado: await this.#describirAgotado(agotado) };
+        return { ok: false, agotado: await this.#describirAgotado(agotado, c) };
       }
       await c.query('RELEASE SAVEPOINT descontar_porcion');
       return { ok: true };
@@ -142,14 +142,16 @@ export class GestionMenuService {
     }
   }
 
-  /** Nombres de tipos, proteínas y acompañamientos, para mostrar reservas. */
-  async obtenerNombres({ idsTipo = [], idsProteina = [], idsAcompanamiento = [] }) {
+  /**
+   * Nombres de tipos, proteínas y acompañamientos, para mostrar reservas.
+   * Dentro de una transacción hay que pasar su cliente: pedir otra conexión
+   * al pool mientras se retiene una puede agotarlo con muchas peticiones a la vez.
+   */
+  async obtenerNombres({ idsTipo = [], idsProteina = [], idsAcompanamiento = [] }, cliente = null) {
     const unicos = (xs) => [...new Set(xs.filter(Boolean))];
-    const [tipos, proteinas, acompanamientos] = await Promise.all([
-      this.repo.tiposPorIds(unicos(idsTipo)),
-      this.repo.proteinasPorIds(unicos(idsProteina)),
-      this.repo.acompanamientosPorIds(unicos(idsAcompanamiento)),
-    ]);
+    const tipos = await this.repo.tiposPorIds(unicos(idsTipo), cliente);
+    const proteinas = await this.repo.proteinasPorIds(unicos(idsProteina), cliente);
+    const acompanamientos = await this.repo.acompanamientosPorIds(unicos(idsAcompanamiento), cliente);
     return {
       tipos: new Map(tipos.map((t) => [t.id_tipo_almuerzo, t.nombre])),
       proteinas: new Map(proteinas.map((p) => [p.id_proteina, p.nombre])),
@@ -171,9 +173,22 @@ export class GestionMenuService {
   async actualizarMenu(idMenu, datos) {
     await this.#validarOpcionesDelCatalogo(datos);
     return this.db.transaccion(async (c) => {
-      const menu = await this.repo.actualizarMenu(idMenu, datos, c);
-      if (!menu) throw noEncontrado('MENU_NO_ENCONTRADO', 'No encontramos ese menú.');
-      await this.repo.reemplazarOpciones(idMenu, datos.proteinas, datos.acompanamientos, c);
+      // Se bloquea primero el menú, como en descontarPorcion(): mientras se guarda, nadie descuenta.
+      const previo = await this.repo.menuPorId(idMenu, c, { bloquear: true });
+      if (!previo) throw noEncontrado('MENU_NO_ENCONTRADO', 'No encontramos ese menú.');
+      const proteinasActuales = new Map((await this.repo.proteinasDelMenu(idMenu, c)).map((p) => [p.id_proteina, p.cantidad_disponible]));
+      const acompanamientosActuales = new Map((await this.repo.acompanamientosDelMenu(idMenu, c)).map((a) => [a.id_acompanamiento, a.cantidad_disponible]));
+      const ajustados = {
+        ...datos,
+        cantidadDisponible: aplicarCambio(datos.cantidadDisponible, datos.cantidadDisponibleVista, previo.cantidad_disponible),
+        proteinas: datos.proteinas.map((p) => ({ ...p, cantidadDisponible: aplicarCambio(p.cantidadDisponible, p.cantidadVista, proteinasActuales.get(p.idProteina)) })),
+        acompanamientos: datos.acompanamientos.map((a) => ({
+          ...a,
+          cantidadDisponible: aplicarCambio(a.cantidadDisponible, a.cantidadVista, acompanamientosActuales.get(a.idAcompanamiento)),
+        })),
+      };
+      const menu = await this.repo.actualizarMenu(idMenu, ajustados, c);
+      await this.repo.reemplazarOpciones(idMenu, ajustados.proteinas, ajustados.acompanamientos, c);
       return this.#detalleMenu(menu, { incluirInactivas: true }, c);
     });
   }
@@ -280,9 +295,9 @@ export class GestionMenuService {
     }
   }
 
-  async #describirAgotado({ tipo, id }) {
+  async #describirAgotado({ tipo, id }, cliente) {
     if (tipo === 'menu') return { tipo, id, nombre: null, mensaje: 'Se agotaron los almuerzos de hoy.' };
-    const nombres = await this.obtenerNombres(tipo === 'proteina' ? { idsProteina: [id] } : { idsAcompanamiento: [id] });
+    const nombres = await this.obtenerNombres(tipo === 'proteina' ? { idsProteina: [id] } : { idsAcompanamiento: [id] }, cliente);
     const nombre = (tipo === 'proteina' ? nombres.proteinas : nombres.acompanamientos).get(id) ?? null;
     return { tipo, id, nombre, mensaje: `Se agotó: ${nombre}.` };
   }
@@ -299,6 +314,16 @@ export class GestionMenuService {
 
 function errorAgotado(mensaje, nombre = null) {
   return conflicto('PLATO_AGOTADO', `${mensaje} Elige otra opción; no se te cobró nada.`, { nombre });
+}
+
+/**
+ * Porciones a guardar. Si el administrador vio `vista` y pidió `nuevo`, se
+ * aplica solo su cambio (nuevo - vista) sobre lo que hay ahora: las porciones
+ * vendidas mientras editaba no vuelven (sin sobreventa, RNF03).
+ */
+function aplicarCambio(nuevo, vista, actual) {
+  if (vista === undefined || actual === undefined) return nuevo;
+  return Math.max(0, actual + (nuevo - vista));
 }
 
 function aMenu(m) {
