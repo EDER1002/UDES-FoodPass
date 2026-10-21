@@ -15,14 +15,19 @@ const ESTADOS = [
 ];
 const PORCIONES_INICIALES = 30;
 
+// `cantidadVista` guarda lo que había al abrir: el servidor aplica solo el cambio del
+// administrador y respeta las porciones que se vendan mientras edita (sin sobreventa).
 const aBorrador = (m) => ({
   estado: m.estado,
   horaInicioReserva: m.horaInicioReserva.slice(0, 5),
   horaFinReserva: m.horaFinReserva.slice(0, 5),
   cantidadDisponible: m.cantidadDisponible,
-  proteinas: m.proteinas.map((p) => ({ ...p, cantidadDisponible: p.porciones })),
-  acompanamientos: m.acompanamientos.map((a) => ({ ...a, cantidadDisponible: a.porciones })),
+  cantidadDisponibleVista: m.cantidadDisponible,
+  proteinas: m.proteinas.map((p) => ({ ...p, cantidadDisponible: p.porciones, cantidadVista: p.porciones })),
+  acompanamientos: m.acompanamientos.map((a) => ({ ...a, cantidadDisponible: a.porciones, cantidadVista: a.porciones })),
 });
+
+const esCantidadValida = (valor) => String(valor).trim() !== '' && Number.isInteger(Number(valor)) && Number(valor) >= 0;
 
 /** Administración del menú del día y sus porciones (RF02). */
 export function MenuAdmin() {
@@ -60,6 +65,8 @@ export function MenuAdmin() {
   if (cargando && !datos) return <Cargando texto="Cargando el menú…" />;
   if (error) return <div className="admin-cuerpo"><PantallaDeError error={error} alReintentar={recargar} /></div>;
 
+  // Mientras carga otra fecha, el borrador visible es el de la anterior: no se permite guardar.
+  const ocupado = guardando || cargando;
   const activos = (lista) => lista.filter((x) => x.estado === 'ACTIVO');
   const crearMenuNuevo = () =>
     setBorrador({
@@ -73,13 +80,22 @@ export function MenuAdmin() {
 
   const guardar = async (cambios = {}) => {
     const cuerpo = { ...borrador, ...cambios };
+    // Un campo vacío no se guarda como 0 (agotado) sin avisar.
+    const vacio = [{ nombre: 'el total de platos', cantidadDisponible: cuerpo.cantidadDisponible }, ...cuerpo.proteinas, ...cuerpo.acompanamientos]
+      .find((x) => !esCantidadValida(x.cantidadDisponible));
+    if (vacio) {
+      setMensaje({ tono: 'peligro', texto: `Escribe las porciones de ${vacio.nombre} (un número entero, 0 o más).` });
+      return;
+    }
+    const conVista = (x) => (x.cantidadVista === undefined ? {} : { cantidadVista: x.cantidadVista });
     const datosMenu = {
       estado: cuerpo.estado,
       horaInicioReserva: cuerpo.horaInicioReserva,
       horaFinReserva: cuerpo.horaFinReserva,
       cantidadDisponible: Number(cuerpo.cantidadDisponible),
-      proteinas: cuerpo.proteinas.map((p) => ({ idProteina: p.idProteina, cantidadDisponible: Number(p.cantidadDisponible) })),
-      acompanamientos: cuerpo.acompanamientos.map((a) => ({ idAcompanamiento: a.idAcompanamiento, cantidadDisponible: Number(a.cantidadDisponible) })),
+      ...(cuerpo.cantidadDisponibleVista === undefined ? {} : { cantidadDisponibleVista: cuerpo.cantidadDisponibleVista }),
+      proteinas: cuerpo.proteinas.map((p) => ({ idProteina: p.idProteina, cantidadDisponible: Number(p.cantidadDisponible), ...conVista(p) })),
+      acompanamientos: cuerpo.acompanamientos.map((a) => ({ idAcompanamiento: a.idAcompanamiento, cantidadDisponible: Number(a.cantidadDisponible), ...conVista(a) })),
     };
     setGuardando(true);
     setMensaje(null);
@@ -126,7 +142,7 @@ export function MenuAdmin() {
         <section className="tarjeta" style={{ alignItems: 'flex-start' }}>
           <h2>No hay menú para esta fecha</h2>
           <p className="pista">Crea el menú con las proteínas y acompañamientos del catálogo. Queda como borrador hasta que lo publiques.</p>
-          <button type="button" className="btn btn-primario auto" onClick={crearMenuNuevo}><Icono nombre="mas" />Crear menú</button>
+          <button type="button" className="btn btn-primario auto" onClick={crearMenuNuevo} disabled={ocupado}><Icono nombre="mas" />Crear menú</button>
         </section>
       </div>
     );
@@ -144,15 +160,15 @@ export function MenuAdmin() {
       {titulo}
       <div className="titulo-pagina" style={{ marginTop: -6 }}>
         <div className="acciones" style={{ marginLeft: 0 }}>
-          <button type="button" className="btn btn-primario chico auto" onClick={() => guardar()} disabled={guardando}><Icono nombre="check" />Guardar cambios</button>
+          <button type="button" className="btn btn-primario chico auto" onClick={() => guardar()} disabled={ocupado}><Icono nombre="check" />Guardar cambios</button>
           {borrador.estado !== 'PUBLICADO' && (
-            <button type="button" className="btn btn-secundario chico auto" onClick={() => guardar({ estado: 'PUBLICADO' })} disabled={guardando}>Publicar menú</button>
+            <button type="button" className="btn btn-secundario chico auto" onClick={() => guardar({ estado: 'PUBLICADO' })} disabled={ocupado}>Publicar menú</button>
           )}
           {datos.menu?.estado === 'PUBLICADO' && (
-            <button type="button" className="btn btn-secundario chico auto" onClick={() => guardar({ estado: 'CERRADO' })} disabled={guardando}><Icono nombre="candado" />Cerrar reservas</button>
+            <button type="button" className="btn btn-secundario chico auto" onClick={() => guardar({ estado: 'CERRADO' })} disabled={ocupado}><Icono nombre="candado" />Cerrar reservas</button>
           )}
           {datos.menu && !confirmarEliminar && (
-            <button type="button" className="btn btn-peligro chico auto" onClick={() => setConfirmarEliminar(true)} disabled={guardando}><Icono nombre="basura" />Eliminar menú</button>
+            <button type="button" className="btn btn-peligro chico auto" onClick={() => setConfirmarEliminar(true)} disabled={ocupado}><Icono nombre="basura" />Eliminar menú</button>
           )}
         </div>
       </div>
@@ -163,7 +179,7 @@ export function MenuAdmin() {
             <strong id="eliminar-titulo">¿Eliminar el menú de esta fecha?</strong>
             <span>Solo se puede eliminar si no tiene reservas. Si tiene, usa "Cerrar reservas".</span>
             <div className="fila-botones" style={{ marginTop: 10 }}>
-              <button type="button" className="btn btn-peligro-lleno chico auto" onClick={eliminar} disabled={guardando}>Sí, eliminar</button>
+              <button type="button" className="btn btn-peligro-lleno chico auto" onClick={eliminar} disabled={ocupado}>Sí, eliminar</button>
               <button type="button" className="btn btn-secundario chico auto" onClick={() => setConfirmarEliminar(false)}>No</button>
             </div>
           </div>

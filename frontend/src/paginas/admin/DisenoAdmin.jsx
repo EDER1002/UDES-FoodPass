@@ -10,6 +10,7 @@ const SECCIONES = [
   { ruta: '/admin/horarios', nombre: 'Horarios', icono: 'reloj' },
   { ruta: '/admin/validar', nombre: 'Validar fichos', icono: 'escanear' },
   { ruta: '/admin/entregas', nombre: 'Entregas', icono: 'entrega' },
+  { ruta: '/admin/solicitudes', nombre: 'Solicitudes', icono: 'grupo' },
 ];
 
 export function DisenoAdmin() {
@@ -30,7 +31,7 @@ export function DisenoAdmin() {
       <header className="admin-header">
         <div className="interior">
           <NavLink to="/admin" className="marca" aria-label="UDES FoodPass Administración, ir al menú del día">
-            <span className="logo"><Icono nombre="cubiertos" /></span>
+            <img src="/logo.svg" alt="" className="logo-img" width="40" height="40" />
             <span>UDES FoodPass<small>Administración</small></span>
           </NavLink>
           <button type="button" className="btn-menu btn-menu-admin" aria-expanded={menuAbierto} aria-controls="nav-admin" onClick={() => setMenuAbierto((a) => !a)}>

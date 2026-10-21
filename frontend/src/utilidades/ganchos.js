@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { segundosDelDia } from './formato.js';
 
-/** Carga datos asíncronos con estado de carga, error y recarga. */
+/**
+ * Carga datos asíncronos con estado de carga, error y recarga. Si una recarga
+ * falla, conserva los datos anteriores junto con el error.
+ */
 export function useDatos(cargar, dependencias) {
   const [estado, setEstado] = useState({ datos: null, error: null, cargando: true });
   const [version, setVersion] = useState(0);
@@ -14,7 +17,7 @@ export function useDatos(cargar, dependencias) {
     cargarMemo(controlador.signal)
       .then((datos) => !controlador.signal.aborted && setEstado({ datos, error: null, cargando: false }))
       .catch((error) => {
-        if (error.name !== 'AbortError' && !controlador.signal.aborted) setEstado({ datos: null, error, cargando: false });
+        if (error.name !== 'AbortError' && !controlador.signal.aborted) setEstado((e) => ({ datos: e.datos, error, cargando: false }));
       });
     return () => controlador.abort();
   }, [cargarMemo, version]);

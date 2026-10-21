@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Cargando, PantallaDeError } from '../../componentes/Comunes.jsx';
+import { Aviso, Cargando, PantallaDeError } from '../../componentes/Comunes.jsx';
 import { Icono } from '../../componentes/Icono.jsx';
 import { useSesion } from '../../sesion/SesionContexto.jsx';
 import { NOMBRE_METODO, fechaLarga, hora, hoyEnBogota, mayuscula } from '../../utilidades/formato.js';
@@ -22,7 +22,8 @@ export function Entregas() {
   }, [fecha, recargar]);
 
   if (cargando && !datos) return <Cargando texto="Cargando entregas…" />;
-  if (error) return <div className="admin-cuerpo"><PantallaDeError error={error} alReintentar={recargar} /></div>;
+  // Si falla una actualización automática, la tabla se conserva y se avisa arriba.
+  if (error && !datos) return <div className="admin-cuerpo"><PantallaDeError error={error} alReintentar={recargar} /></div>;
 
   const { resumen, entregas } = datos;
   const porcentaje = resumen.confirmadas ? Math.round((resumen.entregadas / resumen.confirmadas) * 100) : 0;
@@ -40,6 +41,7 @@ export function Entregas() {
         <div className="acciones"><button type="button" className="btn btn-secundario chico auto" onClick={recargar}><Icono nombre="actualizar" />Actualizar</button></div>
         <p>{mayuscula(fechaLarga(fecha, { conAnio: true }))}</p>
       </div>
+      {error && <Aviso tono="alerta" icono="wifi-off" titulo="No se pudo actualizar" rol="status">Se muestran los últimos datos. {error.message}</Aviso>}
       <div className="kpis">
         <div className="kpi"><span className="lbl"><Icono nombre="check-circulo" />Reservas confirmadas</span><span className="valor">{resumen.confirmadas}</span><span className="sub">{resumen.pendientesDePago} pendientes de pago</span></div>
         <div className="kpi">

@@ -1,11 +1,19 @@
 import { useId, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Icono } from '../componentes/Icono.jsx';
 import { useSesion } from '../sesion/SesionContexto.jsx';
+
+const TITULOS_DE_ERROR = {
+  SIN_CONEXION: 'Sin conexión',
+  CUENTA_EN_REVISION: 'Tu cuenta está en revisión',
+  CUENTA_RECHAZADA: 'Tu solicitud de cuenta fue rechazada',
+  DEMASIADOS_INTENTOS: 'Demasiados intentos',
+};
 
 export function InicioSesion() {
   const { iniciarSesion } = useSesion();
   const navegar = useNavigate();
+  const desde = useLocation().state?.desde;
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [verContrasena, setVerContrasena] = useState(false);
@@ -19,9 +27,11 @@ export function InicioSesion() {
     setError(null);
     setEnviando(true);
     try {
-      // El rol lo decide el backend: no se elige en el login (RF01).
+      // El rol lo decide el backend: no se elige al iniciar sesión (RF01).
       const usuario = await iniciarSesion(correo.trim(), contrasena);
-      navegar(usuario.rol === 'ADMINISTRADOR' ? '/admin' : '/', { replace: true });
+      const esAdmin = usuario.rol === 'ADMINISTRADOR';
+      const destino = desde && desde.startsWith('/admin') === esAdmin ? desde : esAdmin ? '/admin' : '/';
+      navegar(destino, { replace: true });
     } catch (err) {
       setError(err);
       setTimeout(() => alerta.current?.focus(), 0);
@@ -32,38 +42,43 @@ export function InicioSesion() {
 
   const errorCredenciales = error?.codigo === 'CREDENCIALES_INVALIDAS';
   return (
-    <div className="pantalla-login">
-      <div className="login-heroe">
+    <div className="pantalla-acceso">
+      <header className="barra-titulo">
         <div className="interior">
-          <div className="marca">
-            <span className="logo"><Icono nombre="cubiertos" /></span>
-            <span>UDES FoodPass<small>Universidad de Santander</small></span>
-          </div>
-          <p>Reserva tu almuerzo y reclámalo sin hacer fila.</p>
+          <span aria-hidden="true" />
+          <h1>Iniciar Sesión</h1>
         </div>
-      </div>
-      <main className="login-form">
-        <h1 className="titulo-pantalla">Inicia sesión</h1>
+      </header>
+      <main className="acceso-cuerpo">
+        <img src="/logo.svg" alt="UDES FoodPass" className="logo-grande" width="210" height="210" />
+
+        {desde && desde !== '/' && !error && (
+          <div className="aviso" role="status">
+            <Icono nombre="info" />
+            <span>Inicia sesión para continuar donde ibas.</span>
+          </div>
+        )}
         {error && (
-          <div className="aviso peligro" role="alert" tabIndex={-1} ref={alerta} id={ids.error}>
-            <Icono nombre={error.codigo === 'SIN_CONEXION' ? 'wifi-off' : 'x-circulo'} />
+          <div className={`aviso ${error.codigo === 'CUENTA_EN_REVISION' ? 'alerta' : 'peligro'}`} role="alert" tabIndex={-1} ref={alerta} id={ids.error}>
+            <Icono nombre={error.codigo === 'SIN_CONEXION' ? 'wifi-off' : error.codigo === 'CUENTA_EN_REVISION' ? 'reloj' : 'x-circulo'} />
             <div>
-              <strong>{error.codigo === 'SIN_CONEXION' ? 'Sin conexión' : 'No pudimos iniciar sesión'}</strong>
+              <strong>{TITULOS_DE_ERROR[error.codigo] ?? 'No pudimos iniciar sesión'}</strong>
               <span>{error.message}</span>
+              {error.codigo === 'CUENTA_RECHAZADA' && error.detalles?.motivo && <span> Motivo: {error.detalles.motivo}</span>}
             </div>
           </div>
         )}
-        <form onSubmit={enviar} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        <form className="tarjeta-acceso" onSubmit={enviar} noValidate>
           <div className="campo">
-            <label htmlFor={ids.correo}>Correo institucional</label>
+            <label htmlFor={ids.correo}>Correo</label>
             <div className="entrada">
-              <Icono nombre="correo" />
               <input
                 id={ids.correo}
                 type="email"
                 inputMode="email"
                 autoComplete="username"
-                placeholder="nombre.apellido@udes.edu.co"
+                placeholder="@udes.edu.co"
                 value={correo}
                 onChange={(e) => setCorreo(e.target.value)}
                 required
@@ -74,12 +89,11 @@ export function InicioSesion() {
           <div className={`campo ${errorCredenciales ? 'error' : ''}`}>
             <label htmlFor={ids.contrasena}>Contraseña</label>
             <div className="entrada">
-              <Icono nombre="candado" />
               <input
                 id={ids.contrasena}
                 type={verContrasena ? 'text' : 'password'}
                 autoComplete="current-password"
-                placeholder="Escribe tu contraseña"
+                placeholder="Ingresa la contraseña"
                 value={contrasena}
                 onChange={(e) => setContrasena(e.target.value)}
                 required
@@ -87,20 +101,17 @@ export function InicioSesion() {
               />
               <button type="button" className="accion" onClick={() => setVerContrasena((v) => !v)} aria-pressed={verContrasena}>
                 <Icono nombre={verContrasena ? 'ojo-tachado' : 'ojo'} />
-                {verContrasena ? 'Ocultar' : 'Mostrar'}
+                <span className="solo-lectores">{verContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}</span>
               </button>
             </div>
           </div>
-          <button type="submit" className="btn btn-primario" disabled={enviando || !correo || !contrasena}>
+          <button type="submit" className="btn btn-lila" disabled={enviando || !correo || !contrasena}>
             {enviando ? <><span className="girando" aria-hidden="true" />Ingresando…</> : 'Ingresar'}
           </button>
+          <Link to="/registro" className="enlace">Registrarse</Link>
         </form>
-        <p className="pista">
-          <Icono nombre="info" />
-          <span>Tu perfil (estudiante, subsidiado, empleado o administrador) se reconoce automáticamente al ingresar. Solo se aceptan correos <b>@udes.edu.co</b>.</span>
-        </p>
+        <p className="nota-peq"><Icono nombre="ubicacion" />Cafetería principal · Zona de buses</p>
       </main>
-      <p className="nota-peq pie-login"><Icono nombre="ubicacion" />Cafetería principal · Zona de buses</p>
     </div>
   );
 }

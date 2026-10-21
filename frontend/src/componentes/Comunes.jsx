@@ -1,21 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Icono } from './Icono.jsx';
 
-/** Indicador "Paso X de 3" (RNF04: la reserva toma máximo 3 pasos). */
-export function Pasos({ actual, texto, siguiente }) {
-  return (
-    <div className="pasos">
-      <div className="pasos-texto">
-        <b>Paso {actual} de 3 · {texto}</b>
-        {siguiente && <span>{siguiente}</span>}
-      </div>
-      <div className="barras" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={actual} aria-label={`Paso ${actual} de 3`}>
-        {[1, 2, 3].map((n) => <i key={n} className={n <= actual ? 'on' : ''} />)}
-      </div>
-    </div>
-  );
-}
-
 export function Cargando({ texto = 'Cargando…' }) {
   return (
     <div className="cargando" role="status" aria-live="polite">
