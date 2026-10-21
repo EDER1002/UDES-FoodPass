@@ -114,7 +114,8 @@ export function MenuDelDia() {
       <div className="contenedor">
         <EstadoPantalla icono="reloj" tono="alerta" titulo={restante !== null && restante <= 0 ? 'Las reservas de hoy ya cerraron' : 'Fuera del horario de reservas'} acciones={irAMisReservas}>
           <p>{contexto.horario.motivo ?? `Las reservas de hoy cerraron a las ${hora(contexto.horario.fin)}.`}</p>
-          {contexto.horario.inicio && <p>Tu horario es de <b>{hora(contexto.horario.inicio)}</b> a <b>{hora(contexto.horario.fin)}</b> (hora de Colombia).</p>}
+          {/* El motivo del backend ya incluye el horario: no se repite */}
+          {!contexto.horario.motivo && contexto.horario.inicio && <p>Tu horario es de <b>{hora(contexto.horario.inicio)}</b> a <b>{hora(contexto.horario.fin)}</b> (hora de Colombia).</p>}
         </EstadoPantalla>
       </div>
     );

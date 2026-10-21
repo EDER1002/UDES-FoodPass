@@ -23,21 +23,22 @@ export function Solicitudes() {
   };
 
   return (
-    <div className="admin-cuerpo angosto" style={{ maxWidth: 820 }}>
+    <div className="admin-cuerpo angosto solicitudes">
       <div className="titulo-pagina">
         <h1>Solicitudes de cuenta</h1>
+        {datos.solicitudes.length > 0 && <span className="estado alerta">{datos.solicitudes.length} {datos.solicitudes.length === 1 ? 'pendiente' : 'pendientes'}</span>}
         <div className="acciones"><button type="button" className="btn btn-secundario chico auto" onClick={recargar}><Icono nombre="actualizar" />Actualizar</button></div>
         <p>Verifica los datos de cada persona antes de aprobar su rol. Mientras la cuenta está en revisión, no puede iniciar sesión.</p>
       </div>
       {mensaje && <Aviso tono="exito" icono="check-circulo" titulo={mensaje} rol="status" />}
       {datos.solicitudes.length === 0 ? (
-        <section className="tarjeta" style={{ alignItems: 'center', textAlign: 'center', padding: 32 }}>
-          <Icono nombre="check-circulo" />
-          <h2 style={{ justifyContent: 'center' }}>No hay solicitudes pendientes</h2>
-          <p className="pista" style={{ justifyContent: 'center' }}>Cuando alguien se registre como subsidiado, empleado o administrador, aparecerá aquí.</p>
+        <section className="tarjeta sin-solicitudes">
+          <span className="icono-grande ok" aria-hidden="true"><Icono nombre="check-circulo" /></span>
+          <h2>No hay solicitudes pendientes</h2>
+          <p className="pista">Cuando alguien se registre como subsidiado, empleado o administrador, aparecerá aquí.</p>
         </section>
       ) : (
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <ul className="lista-solicitudes">
           {datos.solicitudes.map((s) => <TarjetaSolicitud key={s.idUsuario} solicitud={s} alResolver={alResolver} />)}
         </ul>
       )}
@@ -80,7 +81,7 @@ function TarjetaSolicitud({ solicitud: s, alResolver }) {
   };
 
   return (
-    <li className="tarjeta" aria-labelledby={`${idBase}-nombre`}>
+    <li className="tarjeta solicitud" aria-labelledby={`${idBase}-nombre`}>
       <div className="reserva-cab">
         <div className="perfil">
           <span className="avatar" aria-hidden="true">{`${s.nombre[0] ?? ''}${s.apellido[0] ?? ''}`}</span>
@@ -110,7 +111,7 @@ function TarjetaSolicitud({ solicitud: s, alResolver }) {
       )}
 
       {accion && (
-        <form onSubmit={enviar} style={{ display: 'flex', flexDirection: 'column', gap: 12 }} aria-label={accion === 'aprobar' ? 'Aprobar la cuenta' : 'Rechazar la solicitud'}>
+        <form onSubmit={enviar} className="form-solicitud" aria-label={accion === 'aprobar' ? 'Aprobar la cuenta' : 'Rechazar la solicitud'}>
           {error && <Aviso tono="peligro" icono="x-circulo" titulo={error.message} rol="alert" />}
           {accion === 'aprobar' && esSubsidiado && (
             <div className="form-rejilla">

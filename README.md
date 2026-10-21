@@ -84,7 +84,8 @@ Abre **http://localhost:5173** en el navegador. Para detener todo: `Ctrl + C` en
 | `npm run dev` | API (`http://localhost:3000/api`) e interfaz (`http://localhost:5173`) juntas |
 | `npm run dev:backend` / `npm run dev:frontend` | Cada una por separado, en terminales distintas |
 | `npm run dev:celular` | Igual que `dev`, pero con HTTPS para usar la cámara del celular (ver abajo) |
-| `npm test` | Pruebas automáticas del backend (77 pruebas) |
+| `npm test` | Pruebas automáticas del backend (97 pruebas) |
+| `npm run prueba:navegador` | Prueba completa en el navegador: recorre la aplicación como lo haría una persona (25 casos, ver abajo) |
 | `npm run build` | Compila la interfaz para producción en `frontend/dist/` |
 | `npm run db:seed` | **Borra todo** y vuelve a cargar los datos de ejemplo (útil para empezar de cero) |
 | `npm run pago:webhook` | Simula la respuesta del banco a un pago PSE pendiente (ver abajo) |
@@ -100,7 +101,11 @@ Son **datos de ejemplo, solo para desarrollo**. La contraseña de todos es **`Fo
 | `estudiante.subsidiado@udes.edu.co` | Andrés Rincón | Estudiante subsidiado | Reserva sin pago (total $0) |
 | `subsidiado.sin.beneficio@udes.edu.co` | Valentina Díaz | Estudiante subsidiado | Pantalla "Tu subsidio no está disponible" (beneficio vencido) |
 | `empleado@udes.edu.co` | Diana Ruiz | Empleado UDES | Igual que el estudiante regular |
-| `admin@udes.edu.co` | Carlos Pérez | Administrador | Menú, catálogos, horarios, validación de fichos y entregas |
+| `admin@udes.edu.co` | Carlos Pérez | Administrador | Menú, catálogos, horarios, validación de fichos, entregas y solicitudes de cuenta |
+| `nueva.subsidiada@udes.edu.co` | Sofía Méndez | Estudiante subsidiado | Cuenta **en revisión**: no puede entrar hasta que el administrador la apruebe en **Solicitudes** |
+| `nuevo.profesor@udes.edu.co` | Jorge Castro | Empleado UDES | Cuenta **en revisión** |
+
+**Crear cuenta:** cualquiera puede registrarse desde "Registrarse" con un correo `@udes.edu.co`. El estudiante regular queda activo de una vez; el subsidiado, el empleado y el administrador quedan en revisión hasta que un administrador los apruebe (o los rechace con un motivo, que la persona ve al intentar entrar).
 
 El seed publica un menú para hoy y los próximos 13 días, con horario de reserva de 00:00 a 23:59 para que puedas probar a cualquier hora. "Maduro frito" empieza **agotado** y "Filete de tilapia" tiene solo 3 porciones, para ver esos estados.
 
@@ -140,6 +145,17 @@ El navegador del celular solo permite usar la cámara en páginas con HTTPS.
 
 Si la cámara no está disponible, el administrador puede **escribir el token** del ficho (no importan las mayúsculas ni los guiones).
 
+## Prueba completa en el navegador
+
+`npm run prueba:navegador` abre un Chromium invisible y usa la aplicación como lo haría una persona: inicia sesión, elige el almuerzo, paga con los tres medios, recibe el QR y, como administrador, aprueba cuentas y valida fichos (también con una cámara simulada que "ve" el QR). En cada pantalla revisa la accesibilidad (WCAG 2.2 AA, con axe-core) y que no haya errores en la consola.
+
+- **No toca tus datos:** usa la base de pruebas (`DATABASE_URL_TEST`) y arranca su propia API (puerto 3100) e interfaz (puerto 5174), así que puede correr aunque tengas `npm run dev` abierto. No la corras al mismo tiempo que `npm test`, porque las dos usan la base de pruebas.
+- **Reloj fijo:** la API de la prueba cree que es el lunes 19/10/2026 a las 9:00 a. m. (horario de reservas de 6:00 a 10:30 a. m.), así que da el mismo resultado a cualquier hora.
+- **Necesita el navegador de Playwright.** La primera vez descárgalo con `npx playwright install chromium` (unos 170 MB, se guarda en `~/.cache/ms-playwright`, no instala nada en el sistema). En Arch Linux, si ese Chromium no arranca, usa el del sistema: `NAVEGADOR_RUTA=/usr/bin/chromium npm run prueba:navegador`.
+- Si algo falla, el informe queda en `playwright-report/` (ábrelo con `npx playwright show-report playwright-report`), con capturas de pantalla y una grabación paso a paso del caso que falló.
+
+Los casos están en [`e2e/`](e2e/): `usuario.spec.js`, `administrador.spec.js` y `camara.spec.js`.
+
 ## Estructura del repositorio
 
 ```
@@ -155,6 +171,7 @@ UDES-FoodPass/
 │   ├── src/paginas/       usuario/ y admin/
 │   ├── src/componentes/   encabezado, íconos y estados comunes
 │   └── public/platos/     ilustraciones de los platos
+├── e2e/                   prueba completa en el navegador (Playwright)
 ├── docs/                  diseño de pantallas y cambios para los diagramas UML
 ├── docker-compose.yml     PostgreSQL para desarrollo
 ├── .env.example           plantilla de configuración (documentada)
