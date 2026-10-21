@@ -80,24 +80,32 @@ export function ResumenSubsidiado() {
         <h2 id="titulo-pedido">Tu Pedido</h2>
         <div className="linea">
           <span className="que"><b>{tipo.nombre}</b><span>({detalle})</span></span>
-          <span className="precio" style={{ textDecoration: 'line-through' }}>{dinero(tipo.precio)}</span>
+          <span className="precio tachado"><span className="solo-lectores">Valor del almuerzo: </span>{dinero(tipo.precio)}</span>
         </div>
-        <div className="linea" style={{ marginTop: 8 }}>
-          <span className="subsidio"><Icono nombre="insignia" /> Subsidio UDES</span>
+        <div className="linea descuento">
+          <span className="subsidio"><Icono nombre="insignia" />Subsidio UDES</span>
           <span className="subsidio">−{dinero(tipo.precio)}</span>
         </div>
         <hr className="separador-dorado" />
-        <div className="total-linea">
-          <span>TOTAL<small>Subsidio aplicado: no necesitas pagar</small></span>
-          <b style={{ color: 'var(--exito)' }}>{dinero(0)}</b>
+        <div className="total-linea gratis">
+          <span>TOTAL<small>No necesitas pagar</small></span>
+          <b>{dinero(0)}</b>
         </div>
       </section>
 
-      <p className="pista"><Icono nombre="info" /><span>Beneficio de hoy: <b>disponible</b> (1 por día). Reclamas en la cafetería principal, zona de buses.</span></p>
+      <h2 className="titulo-figma">Subsidio Aplicado</h2>
+      <section className="panel-subsidio" aria-label="Tu beneficio de hoy">
+        <span className="sello" aria-hidden="true"><Icono nombre="check-circulo" /></span>
+        <div>
+          <b>Estudiante subsidiado</b>
+          <p>Beneficio de hoy: <strong>disponible</strong> (1 por día).</p>
+          <p>Reclamas en la cafetería principal, zona de buses.</p>
+        </div>
+      </section>
 
       <div className="cierre-pedido">
         <button type="button" className="btn btn-lila" onClick={confirmar} disabled={enviando}>
-          {enviando ? <><span className="girando" aria-hidden="true" />Confirmando…</> : 'Confirmar reserva'}
+          {enviando ? <><span className="girando" aria-hidden="true" />Confirmando…</> : 'Confirmar Reserva'}
         </button>
         <p className="nota-peq">Recibirás tu QR en el siguiente paso.</p>
       </div>

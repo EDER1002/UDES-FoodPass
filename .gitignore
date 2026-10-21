@@ -27,3 +27,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Resultados de la prueba en el navegador (npm run prueba:navegador)
+test-results/
+playwright-report/

@@ -306,6 +306,22 @@ a { color: var(--primario); }
 .pedido-figma .total-linea b { color: var(--rojo-precio); font-size: 18px; font-weight: 800; }
 .pedido-figma .total-linea small { display: block; font-size: 12px; color: var(--texto-suave); font-weight: 600; }
 .pedido-figma .subsidio { color: var(--exito); font-weight: 700; }
+.pedido-figma .subsidio { display: inline-flex; align-items: center; gap: 6px; }
+.pedido-figma .subsidio .ico { width: 18px; height: 18px; }
+.pedido-figma .precio.tachado { text-decoration: line-through; color: var(--texto-suave); }
+.pedido-figma .linea.descuento { margin-top: 8px; }
+.pedido-figma .total-linea.gratis b { color: var(--exito); }
+
+/* Estudiante subsidiado: reemplaza a "Métodos de Pago" */
+.panel-subsidio {
+  display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-radius: 16px;
+  border: 2px solid var(--exito-borde); background: linear-gradient(180deg, #fff 0%, var(--exito-suave) 100%);
+}
+.panel-subsidio .sello { width: 44px; height: 44px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--exito); color: #fff; }
+.panel-subsidio .sello .ico { width: 26px; height: 26px; }
+.panel-subsidio b { display: block; font-family: var(--fuente-titulo); font-weight: 600; font-size: 17px; color: var(--exito); }
+.panel-subsidio p { margin: 2px 0 0; font-size: 14px; color: var(--texto-suave); }
+.panel-subsidio strong { color: var(--exito); }
 
 /* Selector de medio de pago: pastilla morada; la opción elegida, azul marino */
 .pastilla { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--morado-pastilla); border-radius: 999px; padding: 4px; border: 0; margin: 0; }
@@ -426,9 +442,13 @@ details.datos-prueba code { font-family: var(--mono); color: var(--texto); }
 .admin-nav .ico { width: 18px; height: 18px; }
 .admin-usuario { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 14px; line-height: 1.25; }
 .admin-usuario small { opacity: 0.8; }
+/* Con seis secciones no cabe el nombre: queda para lectores de pantalla (y en el título del avatar). */
+.admin-header .interior { gap: 14px; }
+.admin-nav a { padding: 0 11px; }
+.admin-usuario .quien { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .avatar.chico { width: 36px; height: 36px; font-size: 13px; background: #fff; color: var(--primario-fuerte); }
 .btn-menu-admin { display: none; }
-@media (max-width: 1099px) {
+@media (max-width: 1239px) {
   .admin-header .interior { padding: 8px 16px; gap: 12px; }
   .btn-menu-admin { display: inline-flex; margin-left: auto; }
   .admin-usuario { display: none; }
@@ -516,3 +536,17 @@ textarea.area:focus { outline: 0; border: 2px solid var(--primario); box-shadow:
 .camara .apagada .ico { width: 44px; height: 44px; }
 .separador { display: flex; align-items: center; gap: 12px; color: var(--texto-suave); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
 .separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: var(--borde); }
+
+/* ---------- Solicitudes de cuenta ---------- */
+.admin-cuerpo.solicitudes { max-width: 820px; }
+.lista-solicitudes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+.solicitud .reserva-cab { flex-wrap: wrap; align-items: flex-start; }
+.solicitud .perfil { flex: 1 1 220px; min-width: 0; }
+.solicitud .perfil > div { min-width: 0; }
+.solicitud .fila > dd { overflow-wrap: anywhere; }
+.form-solicitud { display: flex; flex-direction: column; gap: 12px; }
+.sin-solicitudes { align-items: center; text-align: center; padding: 32px; }
+.sin-solicitudes h2, .sin-solicitudes .pista { justify-content: center; }
+@media (max-width: 520px) {
+  .solicitud .form-rejilla { grid-template-columns: 1fr; }
+}

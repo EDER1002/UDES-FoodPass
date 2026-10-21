@@ -17,7 +17,7 @@ El usuario consulta el menú del día y elige su almuerzo. Lo reserva con antici
 - El usuario usa **Arch Linux** y no se siente cómodo con la terminal. **Explicar y pedir confirmación** antes de cualquier comando que instale algo en el sistema, use `sudo`, toque servicios o modifique archivos fuera del proyecto. Preferir soluciones que vivan dentro de la carpeta del proyecto.
 - Trabajar **por fases** (sección 12). Al cerrar cada fase: resumen corto, comandos exactos para probar y esperar el visto bueno antes de seguir.
 - Ante una contradicción o una decisión no definida: **preguntar, no inventar**. Registrar la respuesta en la sección 13.
-- Hacer commits pequeños con mensajes en español. Rama de trabajo: `claude/udes-foodpass-platform-9ik1hk`. **Subir siempre a GitHub** (`git push -u origin <rama>`).
+- Hacer commits pequeños con mensajes en español. Rama de trabajo: la que indique cada sesión (cada tarea llega a `main` por pull request). **Subir siempre a GitHub** (`git push -u origin <rama>`).
 - `docs/` guarda el PDF del proyecto y los diagramas UML `.drawio` (componentes, clases completo, clases de procesos y secuencia). El código debe ser coherente con ellos. Si el código necesita algo que no está en los diagramas, avisar al usuario para que los actualice.
 - `docs/diseno/` guarda los wireframes y mockups de todas las pantallas. Son la referencia visual del frontend.
 
@@ -170,7 +170,7 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
 
 ## 10. Frontend
 
-- **Estilo:** identidad UDES en azules y blanco, con encabezado superior y menú desplegable (Inicio, Mis reservas, Mi Ficho, Cerrar sesión). Mobile-first. **Referencia visual: `docs/diseno/`.**
+- **Estilo:** prototipo de Figma del usuario ("Prototipo", archivo `JijfUQGzwWWd6qzJ9Hv03A`): azul UDES, café dorado, crema, lavanda y morado; títulos en Merienda y texto en Mulish. Encabezado con avatar, nombre y menú desplegable (Inicio, Pagos, QR's, Cerrar Sesión). Mobile-first. Claude no tiene permiso de edición en ese archivo, así que trabaja con capturas; para lo que el prototipo no cubre (subsidio, administrador) se sigue `docs/diseno/` con la paleta del prototipo.
 - **Pantallas del usuario:**
   - Inicio de sesión.
   - Menú del día, con la hora límite visible.
@@ -198,7 +198,8 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 | `npm run db:migrar` | Crea o actualiza las tablas | Fase 1 |
 | `npm run db:seed` | Carga los datos de ejemplo (solo desarrollo) | Fase 1 |
 | `npm run dev:backend` | API en `http://localhost:3000` | Fase 2 |
-| `npm test` | Pruebas del backend (77) | Fase 2 |
+| `npm test` | Pruebas del backend (97) | Fase 2 |
+| `npm run prueba:navegador` | Prueba completa en Chromium con Playwright (25 casos, `e2e/`). La primera vez: `npx playwright install chromium` | Fase 6 |
 | `npm run pago:webhook [-- RECHAZADO]` | Simula la respuesta del banco al pago PSE pendiente más reciente | Fase 5 |
 | `npm run dev:frontend` | Interfaz en `http://localhost:5173` | Fase 3 |
 | `npm run dev` | API e interfaz juntas | Fase 3 |
@@ -215,8 +216,9 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 | 3. Frontend del usuario | Login, Menú, Resumen y pago, Mi Ficho, errores | Completa |
 | 4. Frontend del administrador | Menú, catálogos, horarios, validación QR, entregas | Completa |
 | 5. Cierre | README final, revisión de seguridad y coherencia con UML (`docs/cambios-uml.md`) | Completa |
+| 6. Diseño de Figma y registro | Pantallas con el prototipo de Figma, Crear Cuenta con verificación de rol (Solicitudes) y prueba en el navegador guardada en `e2e/` | Completa |
 
-**Verificación:** las 77 pruebas del backend pasan. Además se hizo un recorrido de punta a punta en Chromium (39 pasos: los tres medios de pago, rechazo, pago pendiente con webhook, subsidio, horario, plato agotado, sin conexión, cancelación, panel del administrador, validación manual y con cámara) sin errores de consola ni problemas de accesibilidad WCAG 2.2 AA según axe-core.
+**Verificación:** las 97 pruebas del backend pasan, y `npm run prueba:navegador` pasa sus 25 casos: los tres medios de pago, rechazo, PSE pendiente con webhook (aprobado y rechazado), subsidio y subsidio vencido, fuera de horario y hora límite, plato agotado, sin conexión, cancelación con reembolso, registro con aprobación y rechazo, validación manual y con cámara simulada, entregas y acceso denegado al panel. Cada pantalla se revisa con axe-core (WCAG 2.2 AA) y sin errores de consola. **Antes de dar por terminado un cambio del frontend, correr esa prueba.**
 
 **Pruebas mínimas (Fase 2):**
 - Reserva fuera de horario rechazada.
@@ -259,6 +261,9 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 - **Token del ficho:** 16 caracteres en base32 de Crockford (80 bits), con el formato `7K3Q-9XWA-2M4D-H8PN`. Al escribirlo a mano no importan mayúsculas, espacios ni guiones, y se aceptan O/0 e I/L/1 como el mismo carácter.
 - **Pago pendiente:** una reserva PENDIENTE_PAGO sin pago vence a los 15 minutos; con un pago PSE pendiente espera el webhook.
 - **Reembolso:** simulado; solo cambia el estado del pago a REEMBOLSADO.
+- **Registro de cuentas (decisión del usuario):** cada persona crea su cuenta con correo `@udes.edu.co`, contraseña y rol. El estudiante regular queda activo; subsidiado, empleado y administrador quedan en revisión hasta que un administrador los aprueba en Solicitudes (o los rechaza con un motivo).
+- **Pago que llega tarde:** si el banco confirma un pago después de la hora límite, se reembolsa (simulado) en vez de confirmar el almuerzo.
+- **Prueba en el navegador:** `e2e/servidor-e2e.mjs` arranca la API con reloj fijo sobre la base de pruebas y agrega rutas `/__e2e/*` que solo existen ahí (nunca en `server.js`).
 
 ## 14. Entorno de trabajo de Claude
 

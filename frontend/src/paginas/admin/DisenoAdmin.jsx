@@ -44,8 +44,8 @@ export function DisenoAdmin() {
             <button type="button" className="salir-movil" onClick={salir}><Icono nombre="salir" />Cerrar sesión</button>
           </nav>
           <div className="admin-usuario">
-            <span className="avatar chico" aria-hidden="true">{iniciales}</span>
-            <span><b>{usuario?.nombreCompleto}</b><br /><small>{usuario?.nombreRol}</small></span>
+            <span className="avatar chico" aria-hidden="true" title={usuario?.nombreCompleto}>{iniciales}</span>
+            <span className="quien"><b>{usuario?.nombreCompleto}</b><br /><small>{usuario?.nombreRol}</small></span>
             <button type="button" className="btn-menu" onClick={salir}><Icono nombre="salir" />Cerrar sesión</button>
           </div>
         </div>

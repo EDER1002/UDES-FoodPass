@@ -23,9 +23,12 @@
     "dev:backend": "npm run dev -w backend",
     "dev:frontend": "npm run dev -w frontend",
     "build": "npm run build -w frontend",
-    "test": "npm test -w backend"
+    "test": "npm test -w backend",
+    "prueba:navegador": "playwright test -c e2e"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "1.56.1",
     "concurrently": "^10.0.6"
   }
 }
