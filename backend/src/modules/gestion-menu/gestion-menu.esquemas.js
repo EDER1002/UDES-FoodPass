@@ -14,8 +14,17 @@ const camposMenu = z.object({
   horaInicioReserva: horaIso,
   horaFinReserva: horaIso,
   cantidadDisponible: porciones,
-  proteinas: z.array(z.object({ idProteina: idPositivo('La proteína'), cantidadDisponible: porciones })).max(30).default([]),
-  acompanamientos: z.array(z.object({ idAcompanamiento: idPositivo('El acompañamiento'), cantidadDisponible: porciones })).max(30).default([]),
+  // `cantidadVista`: lo que el administrador vio al abrir el menú. Si llega, el
+  // servidor aplica solo su cambio y respeta las porciones vendidas mientras tanto.
+  cantidadDisponibleVista: porciones.optional(),
+  proteinas: z
+    .array(z.object({ idProteina: idPositivo('La proteína'), cantidadDisponible: porciones, cantidadVista: porciones.optional() }))
+    .max(30)
+    .default([]),
+  acompanamientos: z
+    .array(z.object({ idAcompanamiento: idPositivo('El acompañamiento'), cantidadDisponible: porciones, cantidadVista: porciones.optional() }))
+    .max(30)
+    .default([]),
 });
 
 const reglasMenu = (esquema) =>
@@ -35,7 +44,7 @@ export const esquemaFecha = z.object({ fecha: fechaIso });
 
 const nombre = z.string({ error: 'El nombre es obligatorio' }).trim().min(2, { error: 'El nombre debe tener al menos 2 caracteres' }).max(80, { error: 'Máximo 80 caracteres' });
 
-const imagenUrl = textoOpcional(300).refine((u) => !u || u.startsWith('/') || /^https?:\/\//.test(u), {
+const imagenUrl = textoOpcional(300).refine((u) => !u || (u.startsWith('/') && !u.startsWith('//')) || /^https?:\/\//.test(u), {
   error: 'La imagen debe ser una ruta (/platos/...) o una dirección http(s)',
 });
 

@@ -6,6 +6,8 @@ import { ProcesadorDePagos } from './pagos/ProcesadorDePagos.js';
 
 /** Minutos que tiene un usuario para pagar una reserva pendiente. */
 export const MINUTOS_PARA_PAGAR = 15;
+/** Un pago con tarjeta o Nequi responde en segundos; si sigue PENDIENTE tras este tiempo, quedó trabado. */
+export const MINUTOS_PAGO_TRABADO = 2;
 export const LUGAR_DE_RECLAMO = 'Cafetería principal · Zona de buses';
 
 /**
@@ -84,14 +86,14 @@ export class ReservaService {
     const referencia = referenciaDesdeClave(idReserva, claveIdempotencia);
 
     // Bloqueo consultivo por referencia: dos peticiones con la misma clave se atienden una tras otra.
-    return this.db.conCliente(async (cliente) => {
+    const desenlace = await this.db.conCliente(async (cliente) => {
       await cliente.query('SELECT pg_advisory_lock(hashtextextended($1, 0))', [referencia]);
       try {
         const reserva = await this.reservas.obtenerPorId(idReserva, cliente);
         if (!reserva || reserva.id_usuario !== usuario.id) {
           throw noEncontrado('RESERVA_NO_ENCONTRADA', 'No encontramos esa reserva.');
         }
-        if (reserva.estado === 'PENDIENTE_PAGO' && !reserva.id_pago) await this.#prevalidarPago(reserva, cliente);
+        if (reserva.estado === 'PENDIENTE_PAGO' && !reserva.id_pago) await this.#prevalidarPago(reserva, usuario, cliente);
 
         const procesador = new ProcesadorDePagos({ db: this.db, pagoRepositorio: this.pagos });
         procesador.establecerEstrategia(estrategia);
@@ -99,13 +101,15 @@ export class ReservaService {
           { idReserva, monto: reserva.valor_total, metodo: estrategia.metodo, referencia, datos, fecha: this.reloj.ahora() },
           { cliente, antesDeCobrar: (tx) => this.#exigirPendienteSinPago(idReserva, tx) },
         );
-        if (repetido) return this.#respuestaDePago(pago.id_reserva, { repetido: true }, cliente);
-        const { motivo } = await this.#aplicarResultado(idReserva, pago, resultado, cliente);
-        return this.#respuestaDePago(idReserva, { motivo }, cliente);
+        if (repetido) return { repetido: true };
+        // `return await`: el bloqueo se suelta en el finally solo cuando el resultado ya quedó guardado.
+        return await this.#aplicarResultado(idReserva, pago, resultado, cliente);
       } finally {
         await cliente.query('SELECT pg_advisory_unlock(hashtextextended($1, 0))', [referencia]);
       }
     });
+    // La respuesta se arma con la conexión ya liberada.
+    return this.#respuestaDePago(idReserva, desenlace);
   }
 
   /**
@@ -120,13 +124,16 @@ export class ReservaService {
       if (r.estado === 'CANCELADA') throw conflicto('RESERVA_YA_CANCELADA', 'Esta reserva ya estaba cancelada.');
       if (r.estado === 'ENTREGADA') throw conflicto('RESERVA_ENTREGADA', 'Este almuerzo ya fue entregado: no se puede cancelar.');
       if (r.estado === 'PENDIENTE_PAGO') {
-        if (r.id_pago) throw conflicto('PAGO_EN_CURSO', 'Tu pago está en proceso. Espera el resultado antes de cancelar.');
+        if (r.id_pago && !(await this.#vencerPagoTrabado(r, tx))) {
+          throw conflicto('PAGO_EN_CURSO', 'Tu pago está en proceso. Espera el resultado antes de cancelar.');
+        }
+        if (r.id_pago) return;
         await this.reservas.actualizarEstado(idReserva, 'CANCELADA', ['PENDIENTE_PAGO'], tx);
         return;
       }
       const { fecha, hora } = this.reloj.partes();
       const menu = await this.menu.obtenerMenu(r.id_menu, tx);
-      const ventana = await this.#ventanaDelUsuario(usuario, menu, fecha, hora);
+      const ventana = await this.#ventanaDelUsuario(usuario, menu, fecha, hora, tx);
       if (menu.fecha !== fecha || !ventana.fin || hora >= ventana.fin) {
         const limite = ventana.fin ? ` (${horaLegible(ventana.fin)})` : '';
         throw conflicto('CANCELACION_FUERA_DE_HORARIO', `Ya pasó la hora límite${limite}: la reserva no se puede cancelar.`);
@@ -217,9 +224,15 @@ export class ReservaService {
     return (await this.#armarDetalles([fila], cliente, { conComensal: true }))[0];
   }
 
+  /** Para Validación QR: el pedido y su titular, sin la imagen del QR (no hace falta en la caja). */
   async obtenerReservas(ids) {
-    const detalles = await this.#armarDetalles(await this.reservas.porIds([...new Set(ids)]), null, { conComensal: true });
+    const detalles = await this.#armarDetalles(await this.reservas.porIds([...new Set(ids)]), null, { conComensal: true, sinImagenQr: true });
     return new Map(detalles.map((d) => [d.idReserva, d]));
+  }
+
+  /** Bloquea la reserva dentro de la transacción de entrega (orden de bloqueo: reserva → ficho). */
+  async bloquearReserva(idReserva, tx) {
+    await this.reservas.bloquear(idReserva, tx);
   }
 
   async marcarEntregada(idReserva, cliente = null) {
@@ -263,6 +276,22 @@ export class ReservaService {
   }
 
   /** Crea (sin idConfiguracion) o actualiza un horario de reserva (RF04). */
+  /**
+   * Crea el beneficio diario de un estudiante subsidiado recién aprobado.
+   * Lo llama Autenticación, dentro de la transacción que aprueba la cuenta.
+   */
+  async otorgarBeneficio({ idUsuario, idRol, fechaInicioVigencia, fechaFinVigencia }, tx) {
+    if (!fechaInicioVigencia) {
+      throw new ErrorAplicacion('VIGENCIA_REQUERIDA', 'Indica desde qué fecha tiene vigente el subsidio.', 400, {
+        campos: [{ campo: 'fechaInicioVigencia', mensaje: 'Indica desde qué fecha tiene vigente el subsidio.' }],
+      });
+    }
+    await this.reservas.crearBeneficio(
+      { idUsuario, idRol, codigo: `BEN-${crypto.randomBytes(8).toString('hex')}`, desde: fechaInicioVigencia, hasta: fechaFinVigencia ?? null },
+      tx,
+    );
+  }
+
   async guardarConfiguracion(datos) {
     if (datos.idRol) {
       const rol = (await this.auth.listarRoles()).find((r) => r.idRol === datos.idRol);
@@ -288,8 +317,8 @@ export class ReservaService {
    * Ventana en la que el usuario puede reservar hoy: la intersección entre su
    * configuración vigente (la propia manda sobre la del rol) y la ventana del menú.
    */
-  async #ventanaDelUsuario(usuario, menu, fecha, hora) {
-    const config = await this.reservas.configuracionVigente(usuario.id, usuario.idRol, fecha);
+  async #ventanaDelUsuario(usuario, menu, fecha, hora, cliente = null) {
+    const config = await this.reservas.configuracionVigente(usuario.id, usuario.idRol, fecha, cliente);
     if (!config) {
       return { abierto: false, inicio: null, fin: null, motivo: 'No tienes un horario de reservas configurado. Pregunta en la cafetería.' };
     }
@@ -297,9 +326,9 @@ export class ReservaService {
     const inicio = config.hora_inicio > menu.horaInicioReserva ? config.hora_inicio : menu.horaInicioReserva;
     const fin = config.hora_fin < menu.horaFinReserva ? config.hora_fin : menu.horaFinReserva;
     if (inicio >= fin) return { abierto: false, inicio, fin, motivo: 'Hoy no hay reservas en tu horario.' };
-    if (hora < inicio) return { abierto: false, inicio, fin, motivo: `Las reservas de hoy abren a las ${horaLegible(inicio)}.` };
+    if (hora < inicio) return { abierto: false, inicio, fin, motivo: `Las reservas de hoy abren a las ${horaLegible(inicio)}` };
     if (hora >= fin) {
-      return { abierto: false, inicio, fin, motivo: `Las reservas de hoy cerraron a las ${horaLegible(fin)}. Tu horario es de ${horaLegible(inicio)} a ${horaLegible(fin)}.` };
+      return { abierto: false, inicio, fin, motivo: `Las reservas de hoy cerraron a las ${horaLegible(fin)} Tu horario es de ${horaLegible(inicio)} a ${horaLegible(fin)}` };
     }
     return { abierto: true, inicio, fin, motivo: null };
   }
@@ -326,7 +355,8 @@ export class ReservaService {
     if (activa.estado === 'PENDIENTE_PAGO') {
       const liberada = await this.db.transaccion(async (tx) => {
         const r = await this.reservas.bloquear(activa.id_reserva, tx);
-        if (r.estado !== 'PENDIENTE_PAGO' || r.id_pago) return false;
+        if (r.estado !== 'PENDIENTE_PAGO') return false;
+        if (r.id_pago) return this.#vencerPagoTrabado(r, tx);
         return this.reservas.actualizarEstado(r.id_reserva, 'CANCELADA', ['PENDIENTE_PAGO'], tx);
       });
       if (liberada) return;
@@ -378,13 +408,23 @@ export class ReservaService {
     return resultado.idReserva;
   }
 
-  /** Antes de cobrar: plazo para pagar y porciones disponibles (regla 9). */
-  async #prevalidarPago(reserva, cliente) {
+  /** Antes de cobrar: plazo para pagar, horario (RF04) y porciones disponibles (regla 9). */
+  async #prevalidarPago(reserva, usuario, cliente) {
     if (reserva.tipo_reserva !== 'PAGADA') throw conflicto('RESERVA_NO_REQUIERE_PAGO', 'Esta reserva no necesita pago.');
     const creada = this.reloj.instante(reserva.fecha_reserva, reserva.hora_reserva);
     if (this.reloj.ahora() - creada > MINUTOS_PARA_PAGAR * 60_000) {
       await this.reservas.actualizarEstado(reserva.id_reserva, 'CANCELADA', ['PENDIENTE_PAGO'], cliente);
       throw conflicto('RESERVA_EXPIRADA', `Pasaron más de ${MINUTOS_PARA_PAGAR} minutos sin pagar y la reserva se canceló. Vuelve a elegir tu almuerzo.`);
+    }
+    const { fecha, hora } = this.reloj.partes();
+    const menu = await this.menu.obtenerMenu(reserva.id_menu, cliente);
+    const ventana = await this.#ventanaDelUsuario(usuario, menu, fecha, hora, cliente);
+    if (menu.fecha !== fecha || !ventana.abierto) {
+      await this.reservas.actualizarEstado(reserva.id_reserva, 'CANCELADA', ['PENDIENTE_PAGO'], cliente);
+      throw conflicto('FUERA_DE_HORARIO', `${ventana.motivo ?? 'Las reservas de ese día ya cerraron.'} No se hizo ningún cobro.`, {
+        inicio: ventana.inicio,
+        fin: ventana.fin,
+      });
     }
     try {
       await this.menu.verificarDisponibilidad(reserva.id_menu, reserva.id_proteina, reserva.ids_acompanamiento, cliente);
@@ -394,6 +434,20 @@ export class ReservaService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Un pago con tarjeta o Nequi que sigue PENDIENTE después de unos minutos
+   * quedó trabado (por ejemplo, el servidor se reinició a mitad del cobro).
+   * En el sandbox se da por no cobrado: pago RECHAZADO y reserva CANCELADA.
+   * PSE no se vence aquí porque su respuesta llega por el webhook.
+   */
+  async #vencerPagoTrabado(r, tx) {
+    if (r.estado_pago !== 'PENDIENTE' || r.metodo_pago === 'PSE') return false;
+    if (this.reloj.ahora() - new Date(r.fecha_pago) < MINUTOS_PAGO_TRABADO * 60_000) return false;
+    await this.pagos.actualizarEstado(r.id_pago, 'RECHAZADO', ['PENDIENTE'], tx);
+    await this.reservas.actualizarEstado(r.id_reserva, 'CANCELADA', ['PENDIENTE_PAGO'], tx);
+    return true;
   }
 
   /** Se ejecuta con la reserva bloqueada, en la misma transacción que registra el pago. */
@@ -415,6 +469,14 @@ export class ReservaService {
       const reserva = await this.reservas.bloquear(idReserva, tx);
       if (resultado.estado === 'APROBADO') {
         await this.pagos.actualizarEstado(pago.id_pago, 'APROBADO', ['PENDIENTE'], tx);
+        // Un pago que llega cuando ya no se puede servir ese almuerzo (por ejemplo, un
+        // PSE que el banco confirma después de medianoche o con el menú cerrado) se reembolsa.
+        const menu = await this.menu.obtenerMenu(reserva.id_menu, tx);
+        if (reserva.estado !== 'PENDIENTE_PAGO' || menu.estado !== 'PUBLICADO' || menu.fecha !== this.reloj.hoy()) {
+          await this.pagos.actualizarEstado(pago.id_pago, 'REEMBOLSADO', ['APROBADO'], tx);
+          await this.reservas.actualizarEstado(idReserva, 'CANCELADA', ['PENDIENTE_PAGO'], tx);
+          return { motivo: 'La confirmación del pago llegó cuando ese almuerzo ya no se podía reservar. Te devolvimos el dinero (reembolso simulado) y la reserva se canceló.' };
+        }
         const descuento = await this.menu.descontarPorcion(reserva.id_menu, reserva.id_proteina, reserva.ids_acompanamiento, tx);
         if (!descuento.ok) {
           await this.pagos.actualizarEstado(pago.id_pago, 'REEMBOLSADO', ['APROBADO'], tx);
@@ -452,14 +514,17 @@ export class ReservaService {
     return (await this.#armarDetalles([fila], cliente))[0];
   }
 
-  async #armarDetalles(filas, cliente = null, { conComensal = false } = {}) {
+  async #armarDetalles(filas, cliente = null, { conComensal = false, sinImagenQr = false } = {}) {
     if (!filas.length) return [];
-    const nombres = await this.menu.obtenerNombres({
-      idsTipo: filas.map((f) => f.id_tipo_almuerzo),
-      idsProteina: filas.map((f) => f.id_proteina),
-      idsAcompanamiento: filas.flatMap((f) => f.ids_acompanamiento),
-    });
-    const fichos = await this.fichos.obtenerPorReservas(filas.map((f) => f.id_reserva), cliente);
+    const nombres = await this.menu.obtenerNombres(
+      {
+        idsTipo: filas.map((f) => f.id_tipo_almuerzo),
+        idsProteina: filas.map((f) => f.id_proteina),
+        idsAcompanamiento: filas.flatMap((f) => f.ids_acompanamiento),
+      },
+      cliente,
+    );
+    const fichos = await this.fichos.obtenerPorReservas(filas.map((f) => f.id_reserva), cliente, { sinImagen: sinImagenQr });
     const comensales = conComensal ? await this.auth.obtenerUsuarios(filas.map((f) => f.id_usuario)) : null;
     return filas.map((f) => {
       const comensal = comensales?.get(f.id_usuario);

@@ -18,7 +18,7 @@ try {
   const resumen = await sembrarDatosDeEjemplo(pool, { hoy, rondasBcrypt: config.bcryptRondas });
   console.log(`Datos de ejemplo cargados: ${resumen.usuarios} usuarios y menú publicado desde ${hoy} (${resumen.menus} días).\n`);
   console.log(`Contraseña de todos los usuarios de prueba: ${CONTRASENA_DE_PRUEBA}`);
-  for (const u of USUARIOS_DE_PRUEBA) console.log(`  ${u.rol.padEnd(22)} ${u.correo}`);
+  for (const u of USUARIOS_DE_PRUEBA) console.log(`  ${u.rol.padEnd(22)} ${u.correo}${u.estado === 'PENDIENTE' ? '  (en revisión)' : ''}`);
 } catch (error) {
   console.error('No se pudieron cargar los datos de ejemplo:', error.message);
   process.exitCode = 1;

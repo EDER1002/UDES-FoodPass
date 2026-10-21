@@ -30,7 +30,7 @@ import { rutasValidacionQR } from './modules/validacion-qr/validacion-qr.rutas.j
 export function crearApp({ pool, config, reloj = crearReloj(), pasarela = new PasarelaSandbox() }) {
   const db = new BaseDeDatos(pool);
 
-  const auth = new AutenticacionService({ repositorio: new AutenticacionRepositorio(db), config });
+  const auth = new AutenticacionService({ db, repositorio: new AutenticacionRepositorio(db), config, reloj });
   const menu = new GestionMenuService({ db, repositorio: new GestionMenuRepositorio(db) });
   const fichos = new ValidacionQRService({ db, repositorio: new ValidacionQRRepositorio(db), reloj });
   const reservas = new ReservaService({
@@ -44,6 +44,10 @@ export function crearApp({ pool, config, reloj = crearReloj(), pasarela = new Pa
     fichos,
   });
   fichos.conectarReservas(reservas);
+  // Al aprobar la cuenta de un subsidiado se crea su beneficio en la misma transacción.
+  auth.conectarAlAprobar(async (usuario, datos, tx) => {
+    if (usuario.rol === ROLES.SUBSIDIADO) await reservas.otorgarBeneficio({ ...datos, idUsuario: usuario.idUsuario, idRol: usuario.idRol }, tx);
+  });
 
   const app = express();
   app.disable('x-powered-by');
@@ -64,7 +68,7 @@ export function crearApp({ pool, config, reloj = crearReloj(), pasarela = new Pa
   app.use('/api', rutasGestionMenu({ menu, reloj, sesion, soloAdmin, contarSelecciones: (idMenu) => reservas.conteoSelecciones(idMenu) }));
   app.use('/api', rutasReservasPagos({ reservas, config, sesion, soloAdmin }));
   app.use('/api', rutasValidacionQR({ fichos, reservas, auth, reloj, sesion, soloAdmin }));
-  app.use('/api', rutaNoEncontrada);
+  app.use(rutaNoEncontrada);
   app.use(manejarErrores);
 
   return { app, servicios: { auth, menu, reservas, fichos }, pasarela };

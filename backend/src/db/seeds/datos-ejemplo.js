@@ -14,6 +14,9 @@ export const USUARIOS_DE_PRUEBA = [
   { nombre: 'Valentina', apellido: 'Díaz', documento: '1098000005', correo: 'subsidiado.sin.beneficio@udes.edu.co', telefono: '3001234571', rol: 'ESTUDIANTE_SUBSIDIADO' },
   { nombre: 'Diana', apellido: 'Ruiz', documento: '1098000003', correo: 'empleado@udes.edu.co', telefono: '3001234569', rol: 'EMPLEADO_UDES' },
   { nombre: 'Carlos', apellido: 'Pérez', documento: '1098000004', correo: 'admin@udes.edu.co', telefono: '3001234570', rol: 'ADMINISTRADOR' },
+  // Cuentas recién registradas que esperan verificación (pantalla "Solicitudes" del administrador).
+  { nombre: 'Sofía', apellido: 'Méndez', documento: '1098000006', correo: 'nueva.subsidiada@udes.edu.co', telefono: '3001234572', rol: 'ESTUDIANTE_SUBSIDIADO', estado: 'PENDIENTE' },
+  { nombre: 'Jorge', apellido: 'Castro', documento: '1098000007', correo: 'nuevo.profesor@udes.edu.co', telefono: '3001234573', rol: 'EMPLEADO_UDES', estado: 'PENDIENTE' },
 ];
 
 const TIPOS = [
@@ -64,9 +67,9 @@ export async function sembrarDatosDeEjemplo(pool, { hoy, dias = 14, rondasBcrypt
     const usuarios = {};
     for (const u of USUARIOS_DE_PRUEBA) {
       const { rows } = await cliente.query(
-        `INSERT INTO usuario (nombre, apellido, documento, correo, contrasena_hash, telefono, id_rol)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id_usuario`,
-        [u.nombre, u.apellido, u.documento, u.correo, hash, u.telefono, roles[u.rol]],
+        `INSERT INTO usuario (nombre, apellido, documento, correo, contrasena_hash, telefono, id_rol, estado_cuenta)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id_usuario`,
+        [u.nombre, u.apellido, u.documento, u.correo, hash, u.telefono, roles[u.rol], u.estado ?? 'ACTIVA'],
       );
       usuarios[u.correo] = rows[0].id_usuario;
     }
