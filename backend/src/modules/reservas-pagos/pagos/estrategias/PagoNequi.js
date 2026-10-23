@@ -20,7 +20,7 @@ export class PagoNequi extends EstrategiaPago {
     });
   }
 
-  async procesarTransaccion({ referencia, monto, datos }) {
-    return this.pasarela.cobrar({ metodo: this.metodo, referencia, monto, datos: { telefono: datos.telefono } });
+  async procesarTransaccion({ referencia, monto, datos, pagador }) {
+    return this.pasarela.cobrar({ metodo: this.metodo, referencia, monto, datos: { telefono: datos.telefono }, pagador });
   }
 }

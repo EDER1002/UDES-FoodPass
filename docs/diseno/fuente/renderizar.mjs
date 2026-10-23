@@ -1,8 +1,9 @@
-// Genera los PNG de docs/diseno a partir de pantallas.html:
-//   - wireframes/ y mockups/: una imagen por pantalla, todas del mismo tamaño
+// Genera los WIREFRAMES de docs/diseno a partir de pantallas.html:
+//   - wireframes/: una imagen por pantalla, todas del mismo tamaño
 //     (celular 390 × 844 o ventana de escritorio), con el mismo margen y fondo.
-//   - mockups/00-flujo-reserva.png: portada con el flujo de reserva en 3 pasos.
 //   - wireframes/anotados/: cada tablero con su título y sus notas numeradas.
+// Los MOCKUPS ya no salen de aquí: son capturas de la aplicación real, que sigue
+// el prototipo de Figma (npm run diseno:capturas, archivo e2e/capturas.spec.js).
 //
 // Requiere Playwright con Chromium (no es una dependencia del proyecto):
 //   node docs/diseno/fuente/renderizar.mjs
@@ -18,8 +19,6 @@ const aqui = path.dirname(fileURLToPath(import.meta.url));
 const pagina = pathToFileURL(path.join(aqui, 'pantallas.html')).href;
 const salidas = [
   { parametros: 'modo=wireframe&exportar=1', carpeta: 'wireframes', selector: '.marco-export' },
-  { parametros: 'modo=mockup&exportar=1', carpeta: 'mockups', selector: '.marco-export' },
-  { parametros: 'modo=mockup&exportar=1', carpeta: 'mockups', selector: '[id="00-flujo-reserva"]' },
   { parametros: 'modo=wireframe', carpeta: 'wireframes/anotados', selector: 'section.tablero' },
 ];
 

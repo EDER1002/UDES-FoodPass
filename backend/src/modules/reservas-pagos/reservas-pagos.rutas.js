@@ -1,9 +1,11 @@
 import { Router } from 'express';
+import { ErrorAplicacion } from '../../compartido/errores.js';
 import { validar } from '../../compartido/validacion.js';
 import { ROLES_COMENSALES, ROLES_QUE_PAGAN } from '../../compartido/roles.js';
 import { permitirRoles } from '../autenticacion/autenticacion.middleware.js';
 import { DATOS_DE_PRUEBA } from './pagos/pasarela/PasarelaSandbox.js';
-import { CABECERA_FIRMA, esquemaWebhook, verificarFirma } from './pagos/webhook.js';
+import { estadoDesdeWompi, verificarEventoWompi } from './pagos/pasarela/PasarelaWompi.js';
+import { CABECERA_FIRMA, esquemaEventoWompi, esquemaWebhook, verificarFirma } from './pagos/webhook.js';
 import {
   esquemaClaveIdempotencia,
   esquemaConfiguracion,
@@ -12,7 +14,7 @@ import {
   esquemaPedido,
 } from './reservas-pagos.esquemas.js';
 
-export function rutasReservasPagos({ reservas, config, sesion, soloAdmin }) {
+export function rutasReservasPagos({ reservas, pasarela, config, sesion, soloAdmin }) {
   const rutas = Router();
   const comensal = [sesion, permitirRoles(...ROLES_COMENSALES)];
 
@@ -51,17 +53,23 @@ export function rutasReservasPagos({ reservas, config, sesion, soloAdmin }) {
     res.json({ reserva: await reservas.cancelarReserva(req.usuario, id) });
   });
 
-  // Medios de pago disponibles y datos de prueba del sandbox
+  // Medios de pago disponibles y datos de prueba (sandbox propio o de Wompi)
   rutas.get('/pagos/medios', sesion, (_req, res) => {
+    const wompi = config.pasarela.modo === 'wompi';
+    const prueba = wompi ? pasarela.datosDePrueba : DATOS_DE_PRUEBA;
     res.json({
       modo: config.pasarela.modo,
       metodos: ['NEQUI', 'PSE', 'TARJETA'],
-      bancosPse: DATOS_DE_PRUEBA.bancosPse,
-      datosDePrueba: {
-        tarjetaAprobada: DATOS_DE_PRUEBA.tarjetaAprobada,
-        tarjetaRechazada: DATOS_DE_PRUEBA.tarjetaRechazada,
-        nequiRechazado: DATOS_DE_PRUEBA.nequiRechazado,
-      },
+      bancosPse: pasarela.bancosPse(),
+      terminos: wompi ? pasarela.terminos() : null,
+      datosDePrueba: prueba
+        ? {
+            tarjetaAprobada: prueba.tarjetaAprobada,
+            tarjetaRechazada: prueba.tarjetaRechazada,
+            nequiAprobado: prueba.nequiAprobado ?? null,
+            nequiRechazado: prueba.nequiRechazado,
+          }
+        : null,
     });
   });
 
@@ -70,6 +78,25 @@ export function rutasReservasPagos({ reservas, config, sesion, soloAdmin }) {
     verificarFirma(req.cuerpoCrudo, req.get(CABECERA_FIRMA), config.pasarela.secretoWebhook);
     const notificacion = validar(esquemaWebhook, req.body);
     res.json({ recibido: true, ...(await reservas.confirmarPagoDesdePasarela(notificacion)) });
+  });
+
+  // POST /api/pagos/webhook/wompi → eventos de Wompi (checksum SHA-256 con el secreto de eventos)
+  rutas.post('/pagos/webhook/wompi', async (req, res) => {
+    if (config.pasarela.modo !== 'wompi') throw new ErrorAplicacion('NO_ENCONTRADO', 'Esta ruta no existe.', 404);
+    if (!verificarEventoWompi(req.body, config.pasarela.wompi.secretoEventos)) {
+      throw new ErrorAplicacion('FIRMA_INVALIDA', 'La firma del evento de Wompi no es válida.', 401);
+    }
+    const evento = validar(esquemaEventoWompi, req.body);
+    const estado = estadoDesdeWompi(evento.data.transaction.status);
+    // Wompi reintenta si no recibe 200: los eventos que no cambian nada también se confirman.
+    if (evento.event !== 'transaction.updated' || estado === 'PENDIENTE') return res.json({ recibido: true });
+    try {
+      res.json({ recibido: true, ...(await reservas.confirmarPagoDesdePasarela({ referencia: evento.data.transaction.reference, estado })) });
+    } catch (error) {
+      // Una transacción del comercio que no salió de FoodPass: se confirma para que Wompi no la reenvíe.
+      if (error.codigo === 'PAGO_NO_ENCONTRADO') return res.json({ recibido: true, procesado: false });
+      throw error;
+    }
   });
 
   // GET/PUT /api/admin/configuracion-reserva → horarios por rol o usuario (RF04)

@@ -23,7 +23,7 @@ export class PagoPSE extends EstrategiaPago {
     });
   }
 
-  async procesarTransaccion({ referencia, monto, datos }) {
-    return this.pasarela.cobrar({ metodo: this.metodo, referencia, monto, datos });
+  async procesarTransaccion({ referencia, monto, datos, pagador }) {
+    return this.pasarela.cobrar({ metodo: this.metodo, referencia, monto, datos, pagador });
   }
 }

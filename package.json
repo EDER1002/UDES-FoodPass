@@ -24,7 +24,8 @@
     "dev:frontend": "npm run dev -w frontend",
     "build": "npm run build -w frontend",
     "test": "npm test -w backend",
-    "prueba:navegador": "playwright test -c e2e"
+    "prueba:navegador": "playwright test -c e2e",
+    "diseno:capturas": "CAPTURAS=1 playwright test -c e2e capturas"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",

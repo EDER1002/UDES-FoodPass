@@ -90,7 +90,7 @@ Cada módulo tiene esta forma:
 - `EstrategiaPago` es la interfaz, con `procesarTransaccion(pago)`. La implementan `PagoPSE`, `PagoTarjeta` y `PagoNequi`.
 - Agregar un medio de pago = crear una clase nueva sin tocar las demás.
 - **El subsidio no es una estrategia:** se valida en `ReservaService`.
-- **Pasarela:** aún no hay proveedor (los candidatos son Wompi o ePayco; la recomendación, Wompi, está en `docs/pasarela-de-pago.md` y espera la decisión del usuario). Se usa el adaptador `PasarelaSandbox` detrás de las estrategias y un webhook genérico `POST /api/pagos/webhook` firmado con HMAC-SHA256 (cabecera `X-FoodPass-Firma: sha256=<hex>`, secreto `WEBHOOK_SECRETO`).
+- **Pasarela:** por defecto el adaptador simulado `PasarelaSandbox` con un webhook genérico `POST /api/pagos/webhook` firmado con HMAC-SHA256 (cabecera `X-FoodPass-Firma: sha256=<hex>`, secreto `WEBHOOK_SECRETO`). Con `PASARELA_MODO=wompi` se usa `PasarelaWompi` (mismos métodos) y su webhook `POST /api/pagos/webhook/wompi` (checksum SHA-256 con el secreto de eventos). Recomendación y detalles en `docs/pasarela-de-pago.md`; ePayco quedó descartado salvo que el usuario diga otra cosa.
 - `ProcesadorDePagos` se crea **uno por pago**, para que dos pagos simultáneos no compartan la estrategia.
 - **Nunca** guardar números de tarjeta ni datos sensibles de pago.
 
@@ -162,6 +162,7 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
 | `GET /api/reservas/mias` | Historial | Autenticado |
 | `GET /api/fichos/actual` | Mi Ficho | Autenticado |
 | `POST /api/pagos/webhook` | Confirmación de la pasarela | Pasarela (firma) |
+| `POST /api/pagos/webhook/wompi` | Eventos de Wompi (solo con `PASARELA_MODO=wompi`) | Wompi (checksum) |
 | `POST/PUT/DELETE /api/admin/menu[/:id]` | `publicarMenu()` y edición | Admin |
 | `GET/POST/PUT /api/admin/{proteinas,acompanamientos,tipos-almuerzo}` | Catálogos | Admin |
 | `GET/PUT /api/admin/configuracion-reserva` | Horarios | Admin |
@@ -172,7 +173,7 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
 
 ## 10. Frontend
 
-- **Estilo:** prototipo de Figma del usuario ("Prototipo", archivo `JijfUQGzwWWd6qzJ9Hv03A`): azul UDES, café dorado, crema, lavanda y morado; títulos en Merienda y texto en Mulish. Encabezado con avatar, nombre y menú desplegable (Inicio, Pagos, QR's, Cerrar Sesión). Mobile-first. Claude no tiene permiso de edición en ese archivo, así que trabaja con capturas; para lo que el prototipo no cubre (subsidio, administrador) se sigue `docs/diseno/` con la paleta del prototipo.
+- **Estilo:** prototipo de Figma del usuario ("Prototipo", archivo `JijfUQGzwWWd6qzJ9Hv03A`): azul UDES, café dorado, crema, lavanda y morado; títulos en Merienda y texto en Mulish. Encabezado con avatar, nombre y menú desplegable (Inicio, Pagos, QR's, Cerrar Sesión). Mobile-first. Desde el 23/10/2026 el conector de Figma sí puede leerlo (el logo y los logos de pago de `frontend/public/` salen de ahí); para lo que el prototipo no cubre (subsidio, administrador) se sigue `docs/diseno/` con la paleta del prototipo.
 - **Pantallas del usuario:**
   - Inicio de sesión.
   - Menú del día, con la hora límite visible.
@@ -200,10 +201,11 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 | `npm run db:migrar` | Crea o actualiza las tablas | Fase 1 |
 | `npm run db:seed` | Carga los datos de ejemplo (solo desarrollo) | Fase 1 |
 | `npm run dev:backend` | API en `http://localhost:3000` | Fase 2 |
-| `npm test` | Pruebas del backend (97) | Fase 2 |
+| `npm test` | Pruebas del backend (110) | Fase 2 |
 | `npm run prueba:navegador` | Prueba completa en Chromium con Playwright (25 casos, `e2e/`). La primera vez: `npx playwright install chromium` | Fase 6 |
 | `npm run pago:webhook [-- RECHAZADO]` | Simula la respuesta del banco al pago PSE pendiente más reciente | Fase 5 |
 | `npm run dev:frontend` | Interfaz en `http://localhost:5173` | Fase 3 |
+| `npm run diseno:capturas` | Toma los mockups de `docs/diseno/mockups/` desde la aplicación real | Fase 7 |
 | `npm run dev` | API e interfaz juntas | Fase 3 |
 | `npm run dev:celular` | Igual, con HTTPS en la red local para la cámara del celular | Fase 4 |
 | `npm run build` | Compila la interfaz en `frontend/dist/` | Fase 3 |
@@ -219,8 +221,9 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 | 4. Frontend del administrador | Menú, catálogos, horarios, validación QR, entregas | Completa |
 | 5. Cierre | README final, revisión de seguridad y coherencia con UML (`docs/cambios-uml.md`) | Completa |
 | 6. Diseño de Figma y registro | Pantallas con el prototipo de Figma, Crear Cuenta con verificación de rol (Solicitudes) y prueba en el navegador guardada en `e2e/` | Completa |
+| 7. Cierre de pendientes | Logo y logos de pago del prototipo, mockups tomados de la app, adaptador Wompi opcional, registro en `docs/cambios-uml.md` | Completa (falta el PDF y los `.drawio`) |
 
-**Verificación:** las 97 pruebas del backend pasan, y `npm run prueba:navegador` pasa sus 25 casos: los tres medios de pago, rechazo, PSE pendiente con webhook (aprobado y rechazado), subsidio y subsidio vencido, fuera de horario y hora límite, plato agotado, sin conexión, cancelación con reembolso, registro con aprobación y rechazo, validación manual y con cámara simulada, entregas y acceso denegado al panel. Cada pantalla se revisa con axe-core (WCAG 2.2 AA) y sin errores de consola. **Antes de dar por terminado un cambio del frontend, correr esa prueba.** En el contenedor de Claude el Chromium instalado no coincide con la versión de Playwright: usar `NAVEGADOR_RUTA=/opt/pw-browsers/chromium npm run prueba:navegador`.
+**Verificación:** las 110 pruebas del backend pasan, y `npm run prueba:navegador` pasa sus 25 casos: los tres medios de pago, rechazo, PSE pendiente con webhook (aprobado y rechazado), subsidio y subsidio vencido, fuera de horario y hora límite, plato agotado, sin conexión, cancelación con reembolso, registro con aprobación y rechazo, validación manual y con cámara simulada, entregas y acceso denegado al panel. Cada pantalla se revisa con axe-core (WCAG 2.2 AA) y sin errores de consola. **Antes de dar por terminado un cambio del frontend, correr esa prueba.** En el contenedor de Claude el Chromium instalado no coincide con la versión de Playwright: usar `NAVEGADOR_RUTA=/opt/pw-browsers/chromium npm run prueba:navegador`.
 
 **Pruebas mínimas (Fase 2):**
 - Reserva fuera de horario rechazada.
@@ -262,7 +265,7 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 - **Reloj:** reloj inyectable (zona Bogotá) para que las pruebas fijen la hora.
 - **Token del ficho:** 16 caracteres en base32 de Crockford (80 bits), con el formato `7K3Q-9XWA-2M4D-H8PN`. Al escribirlo a mano no importan mayúsculas, espacios ni guiones, y se aceptan O/0 e I/L/1 como el mismo carácter.
 - **Pago pendiente:** una reserva PENDIENTE_PAGO sin pago vence a los 15 minutos; con un pago PSE pendiente espera el webhook.
-- **Reembolso:** simulado; solo cambia el estado del pago a REEMBOLSADO.
+- **Reembolso:** con el sandbox es simulado; solo cambia el estado del pago a REEMBOLSADO. Con Wompi también se marca REEMBOLSADO, la persona ve "La cafetería te devolverá el dinero" y la devolución se hace a mano desde el panel de Wompi.
 - **Registro de cuentas (decisión del usuario):** cada persona crea su cuenta con correo `@udes.edu.co`, contraseña y rol. El estudiante regular queda activo; subsidiado, empleado y administrador quedan en revisión hasta que un administrador los aprueba en Solicitudes (o los rechaza con un motivo).
 - **Pago que llega tarde:** si el banco confirma un pago después de la hora límite, se reembolsa (simulado) en vez de confirmar el almuerzo.
 - **Prueba en el navegador:** `e2e/servidor-e2e.mjs` arranca la API con reloj fijo sobre la base de pruebas y agrega rutas `/__e2e/*` que solo existen ahí (nunca en `server.js`).

@@ -23,8 +23,9 @@ export class EstrategiaPago {
 
   /**
    * Envía la transacción a la pasarela y devuelve
-   * { estado: 'APROBADO' | 'RECHAZADO' | 'PENDIENTE', motivo?, idTransaccion? }.
-   * @param {{ referencia: string, monto: number, datos: object }} pago
+   * { estado: 'APROBADO' | 'RECHAZADO' | 'PENDIENTE', motivo?, idTransaccion?, urlBanco? }.
+   * `pagador` (correo, nombre y teléfono) lo piden las pasarelas reales; nunca se guarda en `pago`.
+   * @param {{ referencia: string, monto: number, datos: object, pagador?: object }} pago
    */
   // eslint-disable-next-line no-unused-vars
   async procesarTransaccion(pago) {

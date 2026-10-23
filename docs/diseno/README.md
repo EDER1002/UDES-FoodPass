@@ -5,14 +5,15 @@ Diseño de todas las pantallas de **UDES FoodPass**, en dos niveles de detalle:
 | | Wireframes | Mockups |
 |---|---|---|
 | **Para qué sirven** | Definir la **estructura**: qué va en cada pantalla, en qué orden y por qué | Mostrar el **aspecto final**: colores, tipografía, íconos e imágenes |
-| **Cómo se ven** | Escala de grises, imágenes como cajas con una X, notas numeradas que relacionan cada elemento con un requisito (RF/RNF) | Identidad UDES en azules y blanco, ilustraciones de los platos y un QR real |
+| **Cómo se ven** | Escala de grises, imágenes como cajas con una X, notas numeradas que relacionan cada elemento con un requisito (RF/RNF) | El prototipo de Figma del usuario ("Prototipo"): azul UDES, café dorado, crema y lavanda, títulos en Merienda y texto en Mulish, con su logo y los logos de pago |
 | **Carpeta** | [`wireframes/`](wireframes/) y, con notas, [`wireframes/anotados/`](wireframes/anotados/) | [`mockups/`](mockups/) |
 
-**Todas las imágenes tienen las mismas proporciones:**
-- **Celular:** 510 × 965 px, con el mismo celular de 390 × 844, el mismo margen y el mismo fondo. Es el caso de todas las pantallas del usuario y de la validación de fichos del administrador.
-- **Escritorio:** 1336 × 1143 px, con la misma ventana para todas las pantallas del administrador.
+**Los mockups son capturas de la aplicación real**, que sigue el prototipo de Figma. Así nunca se desalinean del código: se regeneran con `npm run diseno:capturas`.
+- **Celular:** 402 × 874, el mismo tamaño de los marcos del prototipo de Figma. Es el caso de todas las pantallas del usuario y de la validación de fichos del administrador.
+- **Escritorio:** 1280 × 860 para las demás pantallas del administrador.
+- **Wireframes:** celular de 390 × 844 dentro de una imagen de 510 × 965, y ventana de escritorio de 1336 × 1143.
 
-Las pantallas más largas que el celular (menú del día, resumen y pago, Mi Ficho) tienen una segunda imagen que muestra la parte de abajo, como si el usuario se desplazara.
+Las pantallas más largas que el celular (menú del día, resumen y pago, Mi Ficho, pedido del ficho) tienen una segunda imagen con la página completa.
 
 > **Datos de ejemplo.** Nombres, precios, porciones y tokens son ficticios.
 >
@@ -37,6 +38,7 @@ Las pantallas más largas que el celular (menú del día, resumen y pago, Mi Fic
 
 | # | Pantalla | Requisitos | Imágenes | Wireframe con notas |
 |---|---|---|---|---|
+| 00 | Crear cuenta | RF01 | `00-crear-cuenta` (solo mockup) | — |
 | 01 | Inicio de sesión | RF01, RNF03 | `01-inicio-sesion`, `01-inicio-sesion-error` | [ver](wireframes/anotados/01-inicio-sesion.png) |
 | 02 | Menú del día (paso 1) | RF03, RF04, RF05, RNF04 | `02-menu-del-dia`, `02-menu-del-dia-acompanamientos` | [ver](wireframes/anotados/02-menu-del-dia.png) |
 | 03 | Menú desplegable | RF01 | `03-menu-navegacion` | [ver](wireframes/anotados/03-menu-navegacion.png) |
@@ -55,13 +57,14 @@ Las pantallas más largas que el celular (menú del día, resumen y pago, Mi Fic
 | 11 | Horarios de reserva | Escritorio | RF04 | `11-admin-horarios` | [ver](wireframes/anotados/11-admin-horarios.png) |
 | 12 | Validación de fichos | Celular | RF08 | `12-admin-validar-escanear`, `12-admin-validar-pedido`, `12-admin-validar-entregado`, `12-admin-validar-ficho-usado` | [ver](wireframes/anotados/12-admin-validar-ficho.png) |
 | 13 | Entregas del día | Escritorio | RF08 | `13-admin-entregas` | [ver](wireframes/anotados/13-admin-entregas.png) |
+| 14 | Solicitudes de cuenta | Escritorio | RF01 | `14-admin-solicitudes` (solo mockup) | — |
 
-Cada nombre de la columna "Imágenes" existe como `mockups/<nombre>.png` y `wireframes/<nombre>.png`.
+Cada nombre de la columna "Imágenes" existe como `mockups/<nombre>.png` y, salvo los marcados "solo mockup", como `wireframes/<nombre>.png`.
 
 ## Criterios de diseño
 
 - **Mobile-first:** las pantallas del usuario se diseñaron a 390 px de ancho. Las del administrador son para escritorio, salvo la validación de fichos, que se hace en la caja con el celular.
-- **Identidad UDES:** azul institucional y blanco, con encabezado superior y menú desplegable (Inicio, Mis reservas, Mi Ficho, Cerrar sesión).
+- **Identidad UDES (prototipo de Figma):** azul institucional, café dorado, crema y lavanda; encabezado con avatar, nombre y menú desplegable (Inicio, Pagos, QR's, Cerrar Sesión).
 - **Accesibilidad (WCAG 2.2 AA):**
   - Lo seleccionado se marca con borde grueso + ícono ✓ + texto "Seleccionado", nunca solo con color.
   - Los estados (Confirmada, Agotado, Rechazado…) siempre llevan ícono y texto.
@@ -73,6 +76,10 @@ Cada nombre de la columna "Imágenes" existe como `mockups/<nombre>.png` y `wire
 ## Mockups
 
 ### Usuario
+
+| 00 · Crear cuenta | | |
+|---|---|---|
+| ![Crear cuenta](mockups/00-crear-cuenta.png) | | |
 
 | 01 · Inicio de sesión | 01 · Error de credenciales | 03 · Menú desplegable |
 |---|---|---|
@@ -115,6 +122,10 @@ Cada nombre de la columna "Imágenes" existe como `mockups/<nombre>.png` y `wire
 | 11 · Horarios de reserva | 13 · Entregas del día |
 |---|---|
 | ![Horarios de reserva](mockups/11-admin-horarios.png) | ![Entregas del día](mockups/13-admin-entregas.png) |
+
+| 14 · Solicitudes de cuenta | |
+|---|---|
+| ![Solicitudes de cuenta](mockups/14-admin-solicitudes.png) | |
 
 ## Wireframes
 
@@ -170,10 +181,11 @@ Cada tablero de [`wireframes/anotados/`](wireframes/anotados/) muestra la pantal
 
 ## Cómo editar o regenerar
 
-Todo sale de **un solo archivo**: [`fuente/pantallas.html`](fuente/pantallas.html). Así los wireframes y los mockups no se desalinean nunca.
+**Mockups:** se toman de la aplicación real con `npm run diseno:capturas` (archivo [`e2e/capturas.spec.js`](../../e2e/capturas.spec.js)). Usa la misma base de pruebas y el mismo reloj fijo que `npm run prueba:navegador`, así que las capturas siempre muestran los mismos datos. Si cambias una pantalla del frontend, vuelve a correrlo para actualizar las imágenes.
 
-1. Ábrelo en el navegador:
-   - `pantallas.html` muestra los mockups.
-   - `pantallas.html?modo=wireframe` muestra los wireframes con sus notas.
-   - Si agregas `&exportar=1`, cada pantalla aparece en su propio marco, tal como queda en las imágenes.
-2. Para regenerar todos los PNG después de editarlo: `node docs/diseno/fuente/renderizar.mjs`. Requiere Playwright con Chromium, que no es una dependencia del proyecto.
+**Wireframes:** salen de [`fuente/pantallas.html`](fuente/pantallas.html).
+
+1. Ábrelo en el navegador con `pantallas.html?modo=wireframe` para ver los wireframes con sus notas. Si agregas `&exportar=1`, cada pantalla aparece en su propio marco, tal como queda en las imágenes.
+2. Para regenerar los PNG después de editarlo: `node docs/diseno/fuente/renderizar.mjs`. Requiere Playwright con Chromium.
+
+> El modo mockup de `pantallas.html` es el diseño anterior al prototipo de Figma y ya no se usa.

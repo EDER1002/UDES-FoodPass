@@ -24,3 +24,15 @@ export const esquemaWebhook = z.object({
   estado: z.enum(['APROBADO', 'RECHAZADO'], { error: 'El estado debe ser APROBADO o RECHAZADO' }),
   idTransaccion: z.string().max(80).optional(),
 });
+
+/** Evento que Wompi envía a POST /api/pagos/webhook/wompi (solo se usan estos campos). */
+export const esquemaEventoWompi = z.object({
+  event: z.string(),
+  data: z.object({
+    transaction: z.object({
+      id: z.string(),
+      reference: z.string().min(1).max(80),
+      status: z.string(),
+    }),
+  }),
+});

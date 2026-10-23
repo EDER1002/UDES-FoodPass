@@ -65,3 +65,10 @@ export function sumarDias(fecha, dias) {
   d.setUTCDate(d.getUTCDate() + dias);
   return d.toISOString().slice(0, 10);
 }
+
+/** Frase del reembolso: en el sandbox es simulado; con Wompi la devolución la hace la cafetería. */
+export function textoReembolso(pago) {
+  return pago?.reembolsoSimulado === false
+    ? `La cafetería te devolverá ${dinero(pago.monto)}.`
+    : `Te devolvimos ${dinero(pago?.monto ?? 0)} (reembolso simulado).`;
+}

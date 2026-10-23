@@ -88,7 +88,7 @@ export function CrearCuenta() {
     return (
       <div className="pantalla-acceso">
         <main className="acceso-cuerpo">
-          <img src="/logo.svg" alt="UDES FoodPass" className="logo-mediano" width="96" height="96" />
+          <img src="/logo.png" alt="UDES FoodPass" className="logo-mediano" width="128" height="128" />
           <EstadoPantalla icono="reloj" tono="info" titulo="Tu cuenta está en revisión" alerta={false}
             acciones={<Link to="/ingresar" className="btn btn-lila ancho">Ir a iniciar sesión</Link>}>
             <p>{enRevision.mensaje}</p>
@@ -121,7 +121,7 @@ export function CrearCuenta() {
   return (
     <div className="pantalla-acceso registro">
       <main className="acceso-cuerpo">
-        <img src="/logo.svg" alt="UDES FoodPass" className="logo-mediano" width="96" height="96" />
+        <img src="/logo.png" alt="UDES FoodPass" className="logo-mediano" width="128" height="128" />
         <h1 className="titulo-figma" style={{ color: 'var(--marino)' }}>Crear Cuenta</h1>
 
         {errorGeneral && (

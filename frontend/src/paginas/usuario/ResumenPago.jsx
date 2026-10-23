@@ -9,9 +9,9 @@ import { dinero } from '../../utilidades/formato.js';
 import { useDatos } from '../../utilidades/ganchos.js';
 
 const MEDIOS = [
-  { metodo: 'PSE', nombre: 'PSE', logo: '/pagos/pse.svg' },
-  { metodo: 'TARJETA', nombre: 'Tarjeta', logo: '/pagos/tarjeta.svg' },
-  { metodo: 'NEQUI', nombre: 'Nequi', logo: '/pagos/nequi.svg' },
+  { metodo: 'PSE', nombre: 'PSE', logo: '/pagos/pse.png' },
+  { metodo: 'TARJETA', nombre: 'Tarjeta', logo: '/pagos/tarjeta.png' },
+  { metodo: 'NEQUI', nombre: 'Nequi', logo: '/pagos/nequi.png' },
 ];
 
 const CAMPOS_VACIOS = { telefono: '', banco: '', tipoPersona: 'NATURAL', documento: '', numero: '', titular: '', vencimiento: '', cvc: '' };
@@ -32,7 +32,7 @@ function datosDelMedio(metodo, campos) {
 /** Lo que vio la persona según el estado final del pago (lo decide el backend). */
 function resultadoDeReserva(reserva) {
   if (reserva.pago?.estado === 'REEMBOLSADO') {
-    return { resultado: 'REEMBOLSADO', mensaje: 'Una opción de tu almuerzo se agotó mientras se confirmaba el pago. Te devolvimos el dinero (reembolso simulado) y la reserva se canceló.' };
+    return { resultado: 'REEMBOLSADO', mensaje: `Una opción de tu almuerzo se agotó mientras se confirmaba el pago. ${reserva.pago.reembolsoSimulado === false ? 'La cafetería te devolverá el dinero' : 'Te devolvimos el dinero (reembolso simulado)'} y la reserva se canceló.` };
   }
   return { resultado: 'RECHAZADO', mensaje: 'El banco rechazó la transacción. Tu reserva se canceló y no se hizo ningún cobro.' };
 }
@@ -145,7 +145,8 @@ export function ResumenPago() {
   // El resultado ya conocido manda sobre la reserva cargada al entrar (que puede estar desactualizada).
   const pendiente = resultado ? resultado.resultado === 'PENDIENTE' : reserva.estado === 'PENDIENTE_PAGO' && reserva.pago?.estado === 'PENDIENTE';
   if (pendiente) {
-    return <PagoPendiente idReserva={reserva.idReserva} alTerminar={(r) => setResultado(resultadoDeReserva(r))} />;
+    return <PagoPendiente idReserva={reserva.idReserva} urlBanco={resultado?.urlBanco} mensaje={resultado?.mensaje} pruebas={Boolean(datos.medios.datosDePrueba)}
+      alTerminar={(r) => setResultado(resultadoDeReserva(r))} />;
   }
   if (resultado?.resultado === 'RECHAZADO') {
     return (
@@ -245,7 +246,7 @@ export function ResumenPago() {
       <div className="logos-pago" aria-hidden="true">
         {MEDIOS.map((m) => (
           <button key={m.metodo} type="button" tabIndex={-1} className={`logo-pago ${metodo === m.metodo ? 'sel' : ''}`} onClick={() => elegirMedio(m.metodo)}>
-            <img src={m.logo} alt="" width="56" height="56" />
+            <img src={m.logo} alt="" width="78" height="78" />
           </button>
         ))}
       </div>
@@ -305,17 +306,27 @@ export function ResumenPago() {
           {enviando ? <><span className="girando" aria-hidden="true" />Procesando pago…</> : 'Confirmar Pago'}
         </button>
         <p className="nota-peq"><Icono nombre="candado" />Conexión segura · Reintentar nunca cobra dos veces</p>
+        {datos.medios.terminos?.terminos && (
+          <p className="nota-peq">
+            Al confirmar aceptas los <a href={datos.medios.terminos.terminos} target="_blank" rel="noreferrer">términos de Wompi</a>
+            {datos.medios.terminos.datosPersonales && <> y su <a href={datos.medios.terminos.datosPersonales} target="_blank" rel="noreferrer">tratamiento de datos personales</a></>}.
+          </p>
+        )}
       </div>
 
+      {prueba && <>
       <Aviso tono="prueba" icono="escudo" titulo="Entorno de pruebas">No se cobra dinero real.</Aviso>
       <details className="datos-prueba">
         <summary>Ver datos de prueba</summary>
         <ul>
-          <li>Nequi: cualquier celular aprueba; <code>{prueba.nequiRechazado}</code> rechaza.</li>
+          {prueba.nequiAprobado
+            ? <li>Nequi: <code>{prueba.nequiAprobado}</code> aprueba y <code>{prueba.nequiRechazado}</code> rechaza.</li>
+            : <li>Nequi: cualquier celular aprueba; <code>{prueba.nequiRechazado}</code> rechaza.</li>}
           <li>Tarjeta: <code>{prueba.tarjetaAprobada.replace(/(\d{4})/g, '$1 ').trim()}</code> aprueba y <code>{prueba.tarjetaRechazada.replace(/(\d{4})/g, '$1 ').trim()}</code> rechaza (cualquier fecha futura y CVC).</li>
           <li>PSE: elige el banco según el resultado que quieras probar.</li>
         </ul>
       </details>
+      </>}
     </div>
   );
 }
@@ -340,7 +351,7 @@ function Campo({ id, etiqueta, ayuda, error, children }) {
  * Pago con respuesta pendiente (PSE): consulta el estado hasta que llegue el
  * webhook. Cada consulta espera a que termine la anterior (con mala señal no se acumulan).
  */
-function PagoPendiente({ idReserva, alTerminar }) {
+function PagoPendiente({ idReserva, urlBanco, mensaje, pruebas, alTerminar }) {
   const { api } = useSesion();
   const navegar = useNavigate();
   const alTerminarRef = useRef(alTerminar);
@@ -376,11 +387,15 @@ function PagoPendiente({ idReserva, alTerminar }) {
 
   return (
     <div className="contenedor">
-      <EstadoPantalla icono="reloj" tono="info" titulo="Tu banco está procesando el pago" alerta={false}
-        acciones={<Link to="/pagos" className="btn btn-secundario">Ver mis pagos</Link>}>
-        <p>Te mostraremos el resultado apenas llegue. No cierres esta pantalla.</p>
+      <EstadoPantalla icono="reloj" tono="info" titulo={urlBanco ? 'Termina el pago en tu banco' : 'Tu banco está procesando el pago'} alerta={false}
+        acciones={<>
+          {/* Se abre en otra pestaña: esta pantalla sigue esperando el resultado. */}
+          {urlBanco && <a href={urlBanco} target="_blank" rel="noreferrer" className="btn btn-primario">Ir a mi banco para pagar</a>}
+          <Link to="/pagos" className="btn btn-secundario">Ver mis pagos</Link>
+        </>}>
+        <p>{mensaje ?? 'Te mostraremos el resultado apenas llegue.'} No cierres esta pantalla.</p>
         <div className="cargando" style={{ minHeight: 0, padding: 8 }} role="status"><span className="girando" aria-hidden="true" />Esperando confirmación…</div>
-        <p className="pista"><Icono nombre="info" /><span>En el entorno de pruebas, el pago pendiente se confirma con el webhook de la pasarela.</span></p>
+        {pruebas && <p className="pista"><Icono nombre="info" /><span>En el entorno de pruebas, el pago pendiente se confirma con el webhook de la pasarela.</span></p>}
       </EstadoPantalla>
     </div>
   );

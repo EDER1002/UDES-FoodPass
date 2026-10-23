@@ -17,7 +17,7 @@ export const LUGAR_DE_RECLAMO = 'Cafetería principal · Zona de buses';
  * el ficho a través del servicio de fichos que recibe (Validación QR).
  */
 export class ReservaService {
-  constructor({ db, reservas, pagos, menu, auth, estrategias, reloj, fichos = null }) {
+  constructor({ db, reservas, pagos, menu, auth, estrategias, reloj, fichos = null, pasarelaReal = false }) {
     this.db = db;
     this.reservas = reservas;
     this.pagos = pagos;
@@ -26,6 +26,8 @@ export class ReservaService {
     this.estrategias = estrategias;
     this.reloj = reloj;
     this.fichos = fichos;
+    // Con una pasarela real (Wompi) un pago pendiente se resuelve solo con su webhook y los reembolsos no son simulados.
+    this.pasarelaReal = pasarelaReal;
   }
 
   conectarFichos(fichos) {
@@ -84,6 +86,10 @@ export class ReservaService {
     const estrategia = this.estrategias.obtener(entrada.metodo);
     const datos = estrategia.validarDatos(entrada.datos);
     const referencia = referenciaDesdeClave(idReserva, claveIdempotencia);
+    // Las pasarelas reales piden el correo y el nombre del titular. Se lee antes de
+    // tomar la conexión del bloqueo, para no pedir una segunda conexión mientras tanto.
+    const titular = await this.auth.obtenerUsuario(usuario.id);
+    const pagador = { correo: titular.correo, nombreCompleto: titular.nombreCompleto, telefono: titular.telefono };
 
     // Bloqueo consultivo por referencia: dos peticiones con la misma clave se atienden una tras otra.
     const desenlace = await this.db.conCliente(async (cliente) => {
@@ -98,7 +104,7 @@ export class ReservaService {
         const procesador = new ProcesadorDePagos({ db: this.db, pagoRepositorio: this.pagos });
         procesador.establecerEstrategia(estrategia);
         const { pago, resultado, repetido } = await procesador.ejecutarPago(
-          { idReserva, monto: reserva.valor_total, metodo: estrategia.metodo, referencia, datos, fecha: this.reloj.ahora() },
+          { idReserva, monto: reserva.valor_total, metodo: estrategia.metodo, referencia, datos, pagador, fecha: this.reloj.ahora() },
           { cliente, antesDeCobrar: (tx) => this.#exigirPendienteSinPago(idReserva, tx) },
         );
         if (repetido) return { repetido: true };
@@ -443,7 +449,7 @@ export class ReservaService {
    * PSE no se vence aquí porque su respuesta llega por el webhook.
    */
   async #vencerPagoTrabado(r, tx) {
-    if (r.estado_pago !== 'PENDIENTE' || r.metodo_pago === 'PSE') return false;
+    if (r.estado_pago !== 'PENDIENTE' || r.metodo_pago === 'PSE' || this.pasarelaReal) return false;
     if (this.reloj.ahora() - new Date(r.fecha_pago) < MINUTOS_PAGO_TRABADO * 60_000) return false;
     await this.pagos.actualizarEstado(r.id_pago, 'RECHAZADO', ['PENDIENTE'], tx);
     await this.reservas.actualizarEstado(r.id_reserva, 'CANCELADA', ['PENDIENTE_PAGO'], tx);
@@ -475,13 +481,13 @@ export class ReservaService {
         if (reserva.estado !== 'PENDIENTE_PAGO' || menu.estado !== 'PUBLICADO' || menu.fecha !== this.reloj.hoy()) {
           await this.pagos.actualizarEstado(pago.id_pago, 'REEMBOLSADO', ['APROBADO'], tx);
           await this.reservas.actualizarEstado(idReserva, 'CANCELADA', ['PENDIENTE_PAGO'], tx);
-          return { motivo: 'La confirmación del pago llegó cuando ese almuerzo ya no se podía reservar. Te devolvimos el dinero (reembolso simulado) y la reserva se canceló.' };
+          return { motivo: `La confirmación del pago llegó cuando ese almuerzo ya no se podía reservar. ${this.#avisoReembolso()} y la reserva se canceló.` };
         }
         const descuento = await this.menu.descontarPorcion(reserva.id_menu, reserva.id_proteina, reserva.ids_acompanamiento, tx);
         if (!descuento.ok) {
           await this.pagos.actualizarEstado(pago.id_pago, 'REEMBOLSADO', ['APROBADO'], tx);
           await this.reservas.actualizarEstado(idReserva, 'CANCELADA', ['PENDIENTE_PAGO'], tx);
-          return { motivo: `${descuento.agotado.mensaje} Te devolvimos el dinero (reembolso simulado) y la reserva se canceló.` };
+          return { motivo: `${descuento.agotado.mensaje} ${this.#avisoReembolso()} y la reserva se canceló.` };
         }
         await this.reservas.actualizarEstado(idReserva, 'CONFIRMADA', ['PENDIENTE_PAGO'], tx);
         await this.fichos.generarFichoQR({ ...reserva, estado: 'CONFIRMADA' }, tx);
@@ -492,20 +498,27 @@ export class ReservaService {
         await this.reservas.actualizarEstado(idReserva, 'CANCELADA', ['PENDIENTE_PAGO'], tx);
         return { motivo: resultado.motivo };
       }
-      return { motivo: resultado.motivo };
+      return { motivo: resultado.motivo, urlBanco: resultado.urlBanco ?? null };
     }, cliente);
   }
 
-  async #respuestaDePago(idReserva, { motivo = null, repetido = false }, cliente) {
+  /** Con el sandbox el reembolso es simulado; con una pasarela real lo hace la cafetería desde el panel de la pasarela. */
+  #avisoReembolso() {
+    return this.pasarelaReal ? 'La cafetería te devolverá el dinero' : 'Te devolvimos el dinero (reembolso simulado)';
+  }
+
+  async #respuestaDePago(idReserva, { motivo = null, repetido = false, urlBanco = null }, cliente) {
     const reserva = await this.obtenerDetalle(idReserva, cliente);
     const resultado = reserva.pago?.estado ?? 'PENDIENTE';
     const mensajes = {
       APROBADO: 'Pago aprobado. Tu almuerzo está reservado.',
       RECHAZADO: `${motivo ?? 'La entidad rechazó el pago.'} Tu reserva se canceló y no se hizo ningún cobro.`,
-      PENDIENTE: 'Tu banco está procesando el pago. Te mostraremos el resultado apenas llegue.',
+      PENDIENTE: urlBanco
+        ? 'Termina el pago en la página de tu banco. Te mostraremos el resultado apenas llegue.'
+        : `${motivo && reserva.pago?.metodo === 'NEQUI' ? `${motivo} ` : 'Tu banco está procesando el pago. '}Te mostraremos el resultado apenas llegue.`,
       REEMBOLSADO: motivo ?? 'Una opción de tu almuerzo se agotó mientras pagabas. Te devolvimos el dinero y la reserva se canceló.',
     };
-    return { resultado, mensaje: mensajes[resultado], repetido, reserva };
+    return { resultado, mensaje: mensajes[resultado], repetido, reserva, ...(urlBanco ? { urlBanco } : {}) };
   }
 
   async obtenerDetalle(idReserva, cliente = null) {
@@ -540,7 +553,7 @@ export class ReservaService {
         tipoAlmuerzo: { idTipoAlmuerzo: f.id_tipo_almuerzo, nombre: nombres.tipos.get(f.id_tipo_almuerzo) },
         proteina: { idProteina: f.id_proteina, nombre: nombres.proteinas.get(f.id_proteina) },
         acompanamientos: f.ids_acompanamiento.map((id) => ({ idAcompanamiento: id, nombre: nombres.acompanamientos.get(id) })),
-        pago: f.id_pago ? { metodo: f.metodo_pago, estado: f.estado_pago, monto: f.monto, fecha: f.fecha_pago } : null,
+        pago: f.id_pago ? { metodo: f.metodo_pago, estado: f.estado_pago, monto: f.monto, fecha: f.fecha_pago, reembolsoSimulado: !this.pasarelaReal } : null,
         ficho: fichos.get(f.id_reserva) ?? null,
         ...(conComensal
           ? { comensal: comensal ? { idUsuario: comensal.idUsuario, nombreCompleto: comensal.nombreCompleto, rol: comensal.rol, nombreRol: comensal.nombreRol } : null }

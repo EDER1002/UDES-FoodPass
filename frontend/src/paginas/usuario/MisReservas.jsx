@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Aviso, Cargando, EstadoPantalla, EstadoReserva, PantallaDeError } from '../../componentes/Comunes.jsx';
 import { Icono } from '../../componentes/Icono.jsx';
 import { useSesion } from '../../sesion/SesionContexto.jsx';
-import { NOMBRE_METODO, dinero, fechaCorta, horaDeInstante, hoyEnBogota, mayuscula } from '../../utilidades/formato.js';
+import { NOMBRE_METODO, dinero, fechaCorta, horaDeInstante, hoyEnBogota, mayuscula, textoReembolso } from '../../utilidades/formato.js';
 import { useDatos } from '../../utilidades/ganchos.js';
 
 export function MisReservas() {
@@ -48,7 +48,7 @@ function TarjetaReserva({ reserva: r, esHoy }) {
         <Aviso tono="peligro" icono="info">Pago rechazado. No se hizo ningún cobro.</Aviso>
       )}
       {r.estado === 'CANCELADA' && pago?.estado === 'REEMBOLSADO' && (
-        <Aviso tono="" icono="info">Cancelada. Te devolvimos {dinero(pago.monto)} (reembolso simulado).</Aviso>
+        <Aviso tono="" icono="info">Cancelada. {textoReembolso(pago)}</Aviso>
       )}
       <div className="reserva-cab">
         <span className="pista">

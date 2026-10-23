@@ -31,7 +31,7 @@ export function DisenoAdmin() {
       <header className="admin-header">
         <div className="interior">
           <NavLink to="/admin" className="marca" aria-label="UDES FoodPass Administración, ir al menú del día">
-            <img src="/logo.svg" alt="" className="logo-img" width="40" height="40" />
+            <img src="/logo.png" alt="" className="logo-img" width="40" height="40" />
             <span>UDES FoodPass<small>Administración</small></span>
           </NavLink>
           <button type="button" className="btn-menu btn-menu-admin" aria-expanded={menuAbierto} aria-controls="nav-admin" onClick={() => setMenuAbierto((a) => !a)}>
