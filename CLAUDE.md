@@ -75,7 +75,7 @@ Cada módulo tiene sus tablas. **Un módulo nunca consulta las tablas de otro**:
 | `reservas-pagos/` | `ReservaService` | `crearReserva()`, `procesarPago()`, `cancelarReserva()` | `configuracion_reserva`, `beneficio_subsidiado`, `reserva`, `reserva_proteina`, `reserva_acompanamiento`, `pago` | Autenticación, Gestión de Menú, Validación QR |
 | `validacion-qr/` | `ValidacionQRService` | `generarFichoQR()`, `validarQR()`, `registrarEntrega()` | `ficho_qr`, `entrega` | Reservas y Pagos, Autenticación |
 
-Las operaciones extra que no están en los diagramas, y las dependencias nuevas, están en `docs/cambios-uml.md`. Reservas y Validación QR dependen una de la otra: se conectan en `backend/src/app.js` con `fichos.conectarReservas(reservas)`.
+Las operaciones extra que no están en los diagramas, y las dependencias nuevas, están en `docs/cambios-uml.md`. Reservas y Validación QR dependen una de la otra: se conectan en `backend/src/app.js` con `fichos.conectarReservas(reservas)`. Del mismo modo, Autenticación llama a `ReservaService.otorgarBeneficio()` al aprobar a un subsidiado, conectado con `auth.conectarAlAprobar(...)`.
 
 Cada módulo tiene esta forma:
 - `*.service.js`: operaciones públicas.
@@ -90,7 +90,7 @@ Cada módulo tiene esta forma:
 - `EstrategiaPago` es la interfaz, con `procesarTransaccion(pago)`. La implementan `PagoPSE`, `PagoTarjeta` y `PagoNequi`.
 - Agregar un medio de pago = crear una clase nueva sin tocar las demás.
 - **El subsidio no es una estrategia:** se valida en `ReservaService`.
-- **Pasarela:** aún no hay proveedor (los candidatos son Wompi o ePayco). Se usa el adaptador `PasarelaSandbox` detrás de las estrategias y un webhook genérico `POST /api/pagos/webhook` firmado con HMAC-SHA256 (cabecera `X-FoodPass-Firma: sha256=<hex>`, secreto `WEBHOOK_SECRETO`).
+- **Pasarela:** aún no hay proveedor (los candidatos son Wompi o ePayco; la recomendación, Wompi, está en `docs/pasarela-de-pago.md` y espera la decisión del usuario). Se usa el adaptador `PasarelaSandbox` detrás de las estrategias y un webhook genérico `POST /api/pagos/webhook` firmado con HMAC-SHA256 (cabecera `X-FoodPass-Firma: sha256=<hex>`, secreto `WEBHOOK_SECRETO`).
 - `ProcesadorDePagos` se crea **uno por pago**, para que dos pagos simultáneos no compartan la estrategia.
 - **Nunca** guardar números de tarjeta ni datos sensibles de pago.
 
@@ -153,6 +153,7 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
 | Método y ruta | Operación | Acceso |
 |---|---|---|
 | `POST /api/auth/login` | `iniciarSesion()` | Público |
+| `POST /api/auth/registro` | `registrarse()` | Público (límite por IP) |
 | `GET /api/auth/me` | Datos del usuario | Autenticado |
 | `GET /api/menu/hoy` | `consultarMenu()` | Autenticado |
 | `POST /api/reservas` | `crearReserva()` | No administradores |
@@ -167,6 +168,7 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
 | `POST /api/admin/fichos/validar` | `validarQR(token)` | Admin |
 | `POST /api/admin/fichos/:id/entregar` | Registrar entrega | Admin |
 | `GET /api/admin/entregas?fecha=` | Entregas del día | Admin |
+| `GET /api/admin/solicitudes`, `POST /api/admin/solicitudes/:id/{aprobar,rechazar}` | Solicitudes de cuenta | Admin |
 
 ## 10. Frontend
 
@@ -218,7 +220,7 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 | 5. Cierre | README final, revisión de seguridad y coherencia con UML (`docs/cambios-uml.md`) | Completa |
 | 6. Diseño de Figma y registro | Pantallas con el prototipo de Figma, Crear Cuenta con verificación de rol (Solicitudes) y prueba en el navegador guardada en `e2e/` | Completa |
 
-**Verificación:** las 97 pruebas del backend pasan, y `npm run prueba:navegador` pasa sus 25 casos: los tres medios de pago, rechazo, PSE pendiente con webhook (aprobado y rechazado), subsidio y subsidio vencido, fuera de horario y hora límite, plato agotado, sin conexión, cancelación con reembolso, registro con aprobación y rechazo, validación manual y con cámara simulada, entregas y acceso denegado al panel. Cada pantalla se revisa con axe-core (WCAG 2.2 AA) y sin errores de consola. **Antes de dar por terminado un cambio del frontend, correr esa prueba.**
+**Verificación:** las 97 pruebas del backend pasan, y `npm run prueba:navegador` pasa sus 25 casos: los tres medios de pago, rechazo, PSE pendiente con webhook (aprobado y rechazado), subsidio y subsidio vencido, fuera de horario y hora límite, plato agotado, sin conexión, cancelación con reembolso, registro con aprobación y rechazo, validación manual y con cámara simulada, entregas y acceso denegado al panel. Cada pantalla se revisa con axe-core (WCAG 2.2 AA) y sin errores de consola. **Antes de dar por terminado un cambio del frontend, correr esa prueba.** En el contenedor de Claude el Chromium instalado no coincide con la versión de Playwright: usar `NAVEGADOR_RUTA=/opt/pw-browsers/chromium npm run prueba:navegador`.
 
 **Pruebas mínimas (Fase 2):**
 - Reserva fuera de horario rechazada.
@@ -246,7 +248,7 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
    - `proteina.cantidad_disponible` es solo informativa.
 5. Subsidio vigente: agregar `fecha_inicio_vigencia`, `fecha_fin_vigencia` y `estado` a `beneficio_subsidiado`. `codigo_qr_diario` se conserva (UNIQUE) pero no se usa: el ficho del día cumple esa función.
 6. Cancelar una reserva confirmada: solo antes de la hora límite. Al cancelar, las porciones vuelven, el pago pasa a REEMBOLSADO, el ficho a EXPIRADO y el subsidio queda libre.
-7. `tipo_almuerzo.tipo_servicio`: texto libre que describe el servicio ("Sopa, seco y jugo", "Seco y jugo"). Revisar contra el PDF cuando esté en `docs/`.
+7. `tipo_almuerzo.tipo_servicio`: texto libre que describe el servicio ("Sopa, seco y jugo", "Seco y jugo"). Revisar contra el PDF cuando esté en `docs/` (el usuario aún no lo ha subido).
 
 **Pagos:** sandbox simulado completo (decisión del usuario). Datos de prueba en el README.
 

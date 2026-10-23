@@ -102,3 +102,72 @@ La dependencia de Reservas hacia Validación QR existe porque **el ficho se gene
 3. **Rama alternativa:** si `descontarPorcion()` falla después de un pago aprobado, el pago pasa a REEMBOLSADO (simulado) y la reserva a CANCELADA.
 4. **Pago pendiente (PSE):** la pasarela responde después por el webhook firmado → `confirmarPagoDesdePasarela()`.
 5. **Entrega en dos pasos:** `validarQR(token)` muestra el pedido → el administrador confirma → `registrarEntrega()`. Esta última, en una transacción, marca el ficho como USADO, crea la `entrega` y llama a `ReservaService.marcarEntregada()`.
+
+## 5. Registro de cuentas y Solicitudes
+
+Se agregó después de los diagramas (decisión "Registro de cuentas" de `CLAUDE.md`, sección 13; migración `005_registro_de_cuentas.sql`). Cada persona crea su cuenta con su correo `@udes.edu.co`, su contraseña y el rol que dice tener. El backend decide si la cuenta queda activa o en revisión:
+
+- **Estudiante regular:** queda ACTIVA y con la sesión iniciada.
+- **Subsidiado, empleado y administrador:** quedan PENDIENTE hasta que un administrador verifique sus datos en la pantalla **Solicitudes**. Mientras tanto no pueden iniciar sesión.
+- El administrador puede **aprobar** (al subsidiado le indica desde y hasta qué fecha tiene vigente el subsidio) o **rechazar** con un motivo, que la persona ve al intentar entrar.
+
+### 5.1 Diagrama de clases (completo): atributos nuevos de `Usuario`
+
+| Atributo nuevo | Tipo | Para qué |
+|---|---|---|
+| `estadoCuenta` | PENDIENTE / ACTIVA / RECHAZADA | Solo las cuentas ACTIVA inician sesión. Las cuentas existentes quedaron ACTIVA |
+| `fechaRegistro` | fecha y hora | Orden de la lista de Solicitudes (la más antigua primero) |
+| `fechaRevision` | fecha y hora, opcional | Cuándo se aprobó o rechazó |
+| `idRevisor` | referencia a `Usuario`, opcional | El administrador que revisó la solicitud (asociación reflexiva de `Usuario` consigo mismo, 0..1) |
+| `motivoRechazo` | texto (máx. 200), opcional | Obligatorio cuando la cuenta queda RECHAZADA |
+
+**Enumeración nueva:** `EstadoCuenta` con PENDIENTE, ACTIVA y RECHAZADA.
+
+**Otra restricción nueva** (migración `006`): los nombres de `TipoAlmuerzo`, `Proteina` y `Acompanamiento` son únicos sin distinguir mayúsculas. No cambia el dibujo; se puede anotar como restricción `{unique}` en `nombre`.
+
+### 5.2 Diagrama de clases de procesos: operaciones nuevas
+
+**`AutenticacionService`**
+
+| Operación | Para qué |
+|---|---|
+| `registrarse(datos)` | Crea la cuenta con la contraseña cifrada (bcrypt). Devuelve el JWT si queda ACTIVA, o el aviso "en revisión" si queda PENDIENTE |
+| `listarSolicitudes()` | Cuentas PENDIENTE para la pantalla Solicitudes |
+| `aprobarCuenta(idUsuario, idRevisor, datos)` | En una transacción: bloquea la solicitud, crea el beneficio si es subsidiado y deja la cuenta ACTIVA |
+| `rechazarCuenta(idUsuario, idRevisor, motivo)` | Deja la cuenta RECHAZADA con el motivo |
+| `conectarAlAprobar(fn)` | Conexión con Reservas y Pagos (ver 5.3). Se llama una vez al armar la aplicación |
+
+`iniciarSesion()` ahora también revisa `estadoCuenta`: con PENDIENTE responde `CUENTA_EN_REVISION` y con RECHAZADA, `CUENTA_RECHAZADA` con el motivo. `validarToken()` rechaza el JWT de una cuenta que ya no está ACTIVA.
+
+**`ReservaService`**
+
+| Operación | Para qué |
+|---|---|
+| `otorgarBeneficio({ idUsuario, idRol, fechaInicioVigencia, fechaFinVigencia }, tx)` | Crea el `BeneficioSubsidiado` del estudiante subsidiado recién aprobado, dentro de la misma transacción de la aprobación |
+
+### 5.3 Diagrama de componentes: dependencia nueva
+
+| Desde | Hacia | Operación que usa | ¿Está en el diagrama? |
+|---|---|---|---|
+| **Autenticación** | **Reservas y Pagos** | `otorgarBeneficio` (al aprobar a un subsidiado) | **No: agregar** |
+
+Autenticación no importa a Reservas: recibe una función con `auth.conectarAlAprobar(...)` en `backend/src/app.js`, igual que se hace con `fichos.conectarReservas(reservas)`. Así la tabla `beneficio_subsidiado` la sigue tocando solo Reservas y Pagos. En el diagrama puede dibujarse como una dependencia punteada «callback» o como una interfaz `AlAprobarCuenta` que Reservas y Pagos implementa.
+
+### 5.4 Endpoints nuevos
+
+| Método y ruta | Operación | Acceso |
+|---|---|---|
+| `POST /api/auth/registro` | `registrarse()` | Público (con límite de intentos por IP) |
+| `GET /api/admin/solicitudes` | `listarSolicitudes()` | Admin |
+| `POST /api/admin/solicitudes/:id/aprobar` | `aprobarCuenta()` | Admin |
+| `POST /api/admin/solicitudes/:id/rechazar` | `rechazarCuenta()` | Admin |
+
+### 5.5 Diagrama de secuencia nuevo (sugerido): "Crear cuenta y aprobarla"
+
+1. La persona llena Crear Cuenta → `POST /api/auth/registro` → `AutenticacionService.registrarse()`.
+2. Si eligió estudiante regular: la cuenta queda ACTIVA y el frontend entra con el JWT. Fin.
+3. Si no: la cuenta queda PENDIENTE y la pantalla dice "Tu cuenta quedó en revisión".
+4. El administrador abre Solicitudes → `listarSolicitudes()`.
+5. **Aprobar:** `aprobarCuenta()` abre una transacción → bloquea la fila (`SELECT ... FOR UPDATE`) → si es subsidiado, `ReservaService.otorgarBeneficio()` crea el beneficio → la cuenta pasa a ACTIVA con `idRevisor` y `fechaRevision`.
+6. **Rama alternativa, rechazar:** `rechazarCuenta()` deja la cuenta RECHAZADA con el motivo. Al intentar entrar, la persona ve ese motivo.
+7. **Rama alternativa, ya revisada:** si otro administrador la revisó primero, responde `SOLICITUD_YA_REVISADA`.
