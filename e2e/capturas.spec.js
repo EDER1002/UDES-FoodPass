@@ -192,5 +192,5 @@ test('portada: flujo de reserva en 3 pasos', async ({ page }) => {
   await page.evaluate(() => Promise.all([...document.images].map((i) => i.decode())));
   const alto = await page.locator('#portada figure').first().evaluate((f) => f.getBoundingClientRect().bottom + 40);
   await page.setViewportSize({ width: 1280, height: Math.ceil(alto) });
-  await foto(page, '00-flujo-reserva');
+  await foto(page, '00-flujo-reserva-figma');
 });

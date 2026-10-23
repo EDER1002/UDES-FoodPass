@@ -17,7 +17,7 @@ Con UDES FoodPass, desde el celular, puedes:
 
 El administrador gestiona el menú, las porciones y los horarios. En la entrega escanea el QR, que ya no puede usarse otra vez.
 
-![Flujo de reserva en 3 pasos: elige tu almuerzo, paga o aplica tu subsidio y reclama con tu ficho QR](docs/diseno/mockups/00-flujo-reserva.png)
+![Flujo de reserva en 3 pasos: elige tu almuerzo, paga o aplica tu subsidio y reclama con tu ficho QR](docs/diseno/mockups/00-flujo-reserva-figma.png)
 
 ## Tecnologías
 
