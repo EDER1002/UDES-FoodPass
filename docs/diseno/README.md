@@ -19,7 +19,7 @@ Las pantallas más largas que el celular (menú del día, resumen y pago, Mi Fic
 >
 > Algunos detalles reflejan **propuestas pendientes de confirmar** (ver `CLAUDE.md`, sección 13). Por ejemplo: máximo de 2 o 1 acompañamientos, imagen de cada plato y las reglas de cancelación. Las notas de los wireframes las marcan como *pendiente*.
 
-![Flujo de reserva en 3 pasos](mockups/00-flujo-reserva.png)
+![Flujo de reserva en 3 pasos](mockups/00-flujo-reserva-figma.png)
 
 ## Flujo principal (máximo 3 pasos, RNF04)
 
