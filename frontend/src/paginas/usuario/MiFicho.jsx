@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Aviso, Cargando, EstadoPantalla, PantallaDeError } from '../../componentes/Comunes.jsx';
 import { Icono } from '../../componentes/Icono.jsx';
 import { useSesion } from '../../sesion/SesionContexto.jsx';
-import { NOMBRE_METODO, dinero, fechaLarga, horaDeInstante, mayuscula } from '../../utilidades/formato.js';
+import { NOMBRE_METODO, dinero, fechaLarga, horaDeInstante, mayuscula, textoReembolso } from '../../utilidades/formato.js';
 import { useDatos } from '../../utilidades/ganchos.js';
 
 export function MiFicho() {
@@ -35,7 +35,7 @@ export function MiFicho() {
         <EstadoPantalla icono="check-circulo" tono="ok" titulo="Reserva cancelada" alerta={false}
           acciones={<Link to="/" className="btn btn-primario">Volver al menú</Link>}>
           <p>Tu QR quedó anulado y las porciones volvieron al menú.</p>
-          {cancelada.pago?.estado === 'REEMBOLSADO' && <p>Te devolvimos {dinero(cancelada.pago.monto)} (reembolso simulado).</p>}
+          {cancelada.pago?.estado === 'REEMBOLSADO' && <p>{textoReembolso(cancelada.pago)}</p>}
           {cancelada.tipoReserva === 'SUBSIDIADA' && <p>Tu subsidio de hoy queda disponible otra vez.</p>}
         </EstadoPantalla>
       </div>
@@ -122,7 +122,9 @@ export function MiFicho() {
       {confirmarCancelacion && (
         <div className="tarjeta" role="group" aria-labelledby="pregunta-cancelar">
           <p id="pregunta-cancelar"><b>¿Seguro que quieres cancelar?</b> Tu QR dejará de servir y las porciones vuelven al menú.
-            {reserva.tipoReserva === 'PAGADA' ? ' Te devolveremos el pago (reembolso simulado).' : ' Tu subsidio de hoy quedará libre.'}</p>
+            {reserva.tipoReserva === 'PAGADA'
+              ? (reserva.pago?.reembolsoSimulado === false ? ' La cafetería te devolverá el pago.' : ' Te devolveremos el pago (reembolso simulado).')
+              : ' Tu subsidio de hoy quedará libre.'}</p>
           <div className="fila-botones">
             <button type="button" className="btn btn-peligro-lleno chico" onClick={cancelar} disabled={cancelando}>{cancelando ? 'Cancelando…' : 'Sí, cancelar'}</button>
             <button type="button" className="btn btn-secundario chico" onClick={() => setConfirmarCancelacion(false)} disabled={cancelando}>No, conservarla</button>

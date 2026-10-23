@@ -42,6 +42,7 @@ export function crearApp({ pool, config, reloj = crearReloj(), pasarela = new Pa
     estrategias: crearEstrategias({ pasarela, reloj }),
     reloj,
     fichos,
+    pasarelaReal: Boolean(pasarela.confirmaPorWebhook),
   });
   fichos.conectarReservas(reservas);
   // Al aprobar la cuenta de un subsidiado se crea su beneficio en la misma transacción.
@@ -66,7 +67,7 @@ export function crearApp({ pool, config, reloj = crearReloj(), pasarela = new Pa
   });
   app.use('/api', rutasAutenticacion({ auth, sesion, soloAdmin }));
   app.use('/api', rutasGestionMenu({ menu, reloj, sesion, soloAdmin, contarSelecciones: (idMenu) => reservas.conteoSelecciones(idMenu) }));
-  app.use('/api', rutasReservasPagos({ reservas, config, sesion, soloAdmin }));
+  app.use('/api', rutasReservasPagos({ reservas, pasarela, config, sesion, soloAdmin }));
   app.use('/api', rutasValidacionQR({ fichos, reservas, auth, reloj, sesion, soloAdmin }));
   app.use(rutaNoEncontrada);
   app.use(manejarErrores);

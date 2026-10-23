@@ -12,12 +12,12 @@ export const CONTRASENA = 'Prueba2026!';
 export const TARJETA = { numero: '4242 4242 4242 4242', titular: 'Laura Gómez', vencimiento: '12/30', cvc: '123' };
 
 /** Aplicación completa sobre la base de pruebas, con reloj fijo (lunes 19/10/2026, 9:00 a. m.). */
-export function crearEntorno({ fecha = HOY, hora = '09:00:00', maxConexiones = null } = {}) {
-  const config = cargarConfig(process.env);
+export function crearEntorno({ fecha = HOY, hora = '09:00:00', maxConexiones = null, pasarela: pasarelaPropia = null, entorno = {} } = {}) {
+  const config = cargarConfig({ ...process.env, ...entorno });
   const pool = crearPool(config.urlBaseDeDatos);
   if (maxConexiones) pool.options.max = maxConexiones;
   const reloj = relojFijo(fecha, hora);
-  const pasarela = new PasarelaSandbox();
+  const pasarela = pasarelaPropia ?? new PasarelaSandbox();
   const { app, servicios } = crearApp({ pool, config, reloj, pasarela });
   return { app, pool, reloj, pasarela, servicios, config, api: () => request(app) };
 }

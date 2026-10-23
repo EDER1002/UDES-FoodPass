@@ -39,6 +39,7 @@ export class ProcesadorDePagos {
         referencia: registrado.referencia_transaccion,
         monto: registrado.monto,
         datos: pago.datos,
+        pagador: pago.pagador,
       });
     } catch {
       // Sin respuesta de la pasarela el pago no puede quedar PENDIENTE para siempre.

@@ -1,7 +1,7 @@
 import { crearApp } from './app.js';
 import { cargarConfig } from './config.js';
 import { crearPool } from './db/conexion.js';
-import { PasarelaSandbox } from './modules/reservas-pagos/pagos/pasarela/PasarelaSandbox.js';
+import { crearPasarela } from './modules/reservas-pagos/pagos/pasarela/index.js';
 
 const config = cargarConfig();
 const pool = crearPool(config.urlBaseDeDatos);
@@ -14,8 +14,16 @@ try {
   process.exit(1);
 }
 
-// La demora imita el tiempo de respuesta de una pasarela real.
-const { app } = crearApp({ pool, config, pasarela: new PasarelaSandbox({ demoraMs: 700 }) });
+// En el sandbox, la demora imita el tiempo de respuesta de una pasarela real.
+const pasarela = crearPasarela(config, { demoraSandboxMs: 700 });
+try {
+  await pasarela.iniciar?.();
+} catch (error) {
+  console.error(`No se pudo conectar con la pasarela de pagos (${error.message}).`);
+  console.error('Revisa las llaves WOMPI_* de tu .env y tu conexión a internet.');
+  process.exit(1);
+}
+const { app } = crearApp({ pool, config, pasarela });
 const servidor = app.listen(config.puerto, () => {
   console.log(`API de UDES FoodPass escuchando en http://localhost:${config.puerto}/api (pagos: ${config.pasarela.modo})`);
 });

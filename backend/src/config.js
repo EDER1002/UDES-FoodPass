@@ -8,8 +8,29 @@ const esquema = z.object({
   JWT_EXPIRACION: z.string().default('8h'),
   BCRYPT_RONDAS: z.coerce.number().int().min(4).max(15).default(10),
   CORS_ORIGEN: z.string().default('http://localhost:5173'),
-  PASARELA_MODO: z.enum(['sandbox'], { error: 'Por ahora solo existe la pasarela sandbox' }).default('sandbox'),
+  PASARELA_MODO: z.enum(['sandbox', 'wompi'], { error: 'PASARELA_MODO debe ser sandbox o wompi' }).default('sandbox'),
   WEBHOOK_SECRETO: z.string({ error: 'Falta WEBHOOK_SECRETO' }).min(16, { error: 'WEBHOOK_SECRETO debe tener al menos 16 caracteres' }),
+  // Solo con PASARELA_MODO=wompi (ver docs/pasarela-de-pago.md)
+  WOMPI_AMBIENTE: z.enum(['sandbox', 'produccion'], { error: 'WOMPI_AMBIENTE debe ser sandbox o produccion' }).default('sandbox'),
+  WOMPI_LLAVE_PUBLICA: z.string().optional(),
+  WOMPI_LLAVE_PRIVADA: z.string().optional(),
+  WOMPI_SECRETO_INTEGRIDAD: z.string().optional(),
+  WOMPI_SECRETO_EVENTOS: z.string().optional(),
+  WOMPI_URL_RETORNO: z.url({ error: 'WOMPI_URL_RETORNO debe ser una dirección web completa' }).optional(),
+}).superRefine((c, ctx) => {
+  if (c.PASARELA_MODO !== 'wompi') return;
+  const prefijo = c.WOMPI_AMBIENTE === 'sandbox' ? 'test' : 'prod';
+  const exigir = (campo, inicio) => {
+    const valor = c[campo];
+    if (!valor) ctx.addIssue({ code: 'custom', path: [campo], message: `Falta ${campo} (la encuentras en el panel de Wompi)` });
+    else if (inicio && !valor.startsWith(`${inicio}_${prefijo}_`)) {
+      ctx.addIssue({ code: 'custom', path: [campo], message: `${campo} debe empezar por ${inicio}_${prefijo}_ en el ambiente ${c.WOMPI_AMBIENTE}` });
+    }
+  };
+  exigir('WOMPI_LLAVE_PUBLICA', 'pub');
+  exigir('WOMPI_LLAVE_PRIVADA', 'prv');
+  exigir('WOMPI_SECRETO_INTEGRIDAD');
+  exigir('WOMPI_SECRETO_EVENTOS');
 });
 
 /**
@@ -33,6 +54,21 @@ export function cargarConfig(entorno = process.env) {
     jwt: { secreto: config.JWT_SECRETO, expiracion: config.JWT_EXPIRACION },
     bcryptRondas: config.BCRYPT_RONDAS,
     origenesCors: config.CORS_ORIGEN.split(',').map((o) => o.trim()).filter(Boolean),
-    pasarela: { modo: config.PASARELA_MODO, secretoWebhook: config.WEBHOOK_SECRETO },
+    pasarela: {
+      modo: config.PASARELA_MODO,
+      secretoWebhook: config.WEBHOOK_SECRETO,
+      wompi:
+        config.PASARELA_MODO === 'wompi'
+          ? {
+              ambiente: config.WOMPI_AMBIENTE,
+              llavePublica: config.WOMPI_LLAVE_PUBLICA,
+              llavePrivada: config.WOMPI_LLAVE_PRIVADA,
+              secretoIntegridad: config.WOMPI_SECRETO_INTEGRIDAD,
+              secretoEventos: config.WOMPI_SECRETO_EVENTOS,
+              // A esta página vuelve la persona después de pagar en su banco (PSE).
+              urlRetorno: config.WOMPI_URL_RETORNO ?? `${config.CORS_ORIGEN.split(',')[0].trim()}/pagos`,
+            }
+          : null,
+    },
   };
 }
