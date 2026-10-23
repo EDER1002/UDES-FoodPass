@@ -9,9 +9,9 @@ import { dinero } from '../../utilidades/formato.js';
 import { useDatos } from '../../utilidades/ganchos.js';
 
 const MEDIOS = [
-  { metodo: 'PSE', nombre: 'PSE', logo: '/pagos/pse.svg' },
-  { metodo: 'TARJETA', nombre: 'Tarjeta', logo: '/pagos/tarjeta.svg' },
-  { metodo: 'NEQUI', nombre: 'Nequi', logo: '/pagos/nequi.svg' },
+  { metodo: 'PSE', nombre: 'PSE', logo: '/pagos/pse.png' },
+  { metodo: 'TARJETA', nombre: 'Tarjeta', logo: '/pagos/tarjeta.png' },
+  { metodo: 'NEQUI', nombre: 'Nequi', logo: '/pagos/nequi.png' },
 ];
 
 const CAMPOS_VACIOS = { telefono: '', banco: '', tipoPersona: 'NATURAL', documento: '', numero: '', titular: '', vencimiento: '', cvc: '' };
@@ -246,7 +246,7 @@ export function ResumenPago() {
       <div className="logos-pago" aria-hidden="true">
         {MEDIOS.map((m) => (
           <button key={m.metodo} type="button" tabIndex={-1} className={`logo-pago ${metodo === m.metodo ? 'sel' : ''}`} onClick={() => elegirMedio(m.metodo)}>
-            <img src={m.logo} alt="" width="56" height="56" />
+            <img src={m.logo} alt="" width="78" height="78" />
           </button>
         ))}
       </div>

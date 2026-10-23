@@ -45,12 +45,12 @@ export function InicioSesion() {
     <div className="pantalla-acceso">
       <header className="barra-titulo">
         <div className="interior">
-          <span aria-hidden="true" />
+          <Link to="/registro" aria-label="Volver a la pantalla de registro"><Icono nombre="chev-izq" /></Link>
           <h1>Iniciar Sesión</h1>
         </div>
       </header>
       <main className="acceso-cuerpo">
-        <img src="/logo.svg" alt="UDES FoodPass" className="logo-grande" width="210" height="210" />
+        <img src="/logo.png" alt="UDES FoodPass" className="logo-grande" width="210" height="210" />
 
         {desde && desde !== '/' && !error && (
           <div className="aviso" role="status">

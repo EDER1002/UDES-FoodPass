@@ -78,7 +78,9 @@ Nota: `descontarPorcion()` recibe una **lista** de acompañamientos y descuenta 
 
 - `ProcesadorDePagos`: `establecerEstrategia()`, `ejecutarPago()` y el método privado `verificarIdempotencia(referencia)`, como en el diagrama.
 - `EstrategiaPago.procesarTransaccion(pago)`, implementada por `PagoNequi`, `PagoPSE` y `PagoTarjeta`.
-- **Agregar** la clase `PasarelaSandbox` (adaptador simulado de la pasarela). Las tres estrategias la usan por medio de `cobrar()`; `PagoPSE` también usa `bancosPse()`. El día que haya un proveedor real (Wompi o ePayco), se crea otro adaptador con esos mismos métodos.
+- **Agregar** la clase `PasarelaSandbox` (adaptador simulado de la pasarela). Las tres estrategias la usan por medio de `cobrar()`; `PagoPSE` también usa `bancosPse()`.
+- **Agregar** la clase `PasarelaWompi` (adaptador de la pasarela real Wompi) con los mismos métodos, más `iniciar()` y `terminos()`. Se elige con `PASARELA_MODO` (`crearPasarela(config)`). Conviene dibujar una interfaz `Pasarela` con `cobrar()` y `bancosPse()`, implementada por `PasarelaSandbox` y `PasarelaWompi`, y la dependencia de las tres estrategias hacia esa interfaz (ver `docs/pasarela-de-pago.md`).
+- `EstrategiaPago.procesarTransaccion(pago)` recibe además `pagador` (correo, nombre y teléfono del titular), que Wompi exige. No se guarda en `pago`.
 
 ## 3. Diagrama de componentes: dependencias
 
@@ -89,7 +91,7 @@ Nota: `descontarPorcion()` recibe una **lista** de acompañamientos y descuenta 
 | Validación QR | Reservas y Pagos | `obtenerReserva`, `obtenerReservas`, `marcarEntregada` | Sí |
 | **Validación QR** | **Autenticación** | `obtenerUsuario` (nombre del administrador que ya entregó un ficho usado) | **No: agregar** |
 | **Reservas y Pagos** | **Validación QR** | `generarFichoQR` (al confirmar), `anularFicho` (al cancelar) | **No: agregar** |
-| Reservas y Pagos | Pasarela de pagos (externa) | `cobrar` y el webhook `POST /api/pagos/webhook` | Revisar |
+| Reservas y Pagos | Pasarela de pagos (externa: sandbox o Wompi) | `cobrar`, `bancosPse` y los webhooks `POST /api/pagos/webhook` y `POST /api/pagos/webhook/wompi` | Revisar: agregar Wompi como componente externo |
 
 La dependencia de Reservas hacia Validación QR existe porque **el ficho se genera en la misma transacción que confirma la reserva**: si algo falla, no queda una reserva confirmada sin ficho. Para no crear un ciclo al construir los objetos, los dos servicios se conectan después de crearse (`fichos.conectarReservas(reservas)` en `backend/src/app.js`). Cada uno sigue tocando solo sus propias tablas.
 
@@ -100,7 +102,7 @@ La dependencia de Reservas hacia Validación QR existe porque **el ficho se gene
 1. **Verificar la disponibilidad antes de cobrar:** `ReservaService` → `GestionMenuService.verificarDisponibilidad()` antes de `ProcesadorDePagos.ejecutarPago()`.
 2. **Una sola transacción al aprobarse el pago:** reserva CONFIRMADA + `descontarPorcion()` + `generarFichoQR()`.
 3. **Rama alternativa:** si `descontarPorcion()` falla después de un pago aprobado, el pago pasa a REEMBOLSADO (simulado) y la reserva a CANCELADA.
-4. **Pago pendiente (PSE):** la pasarela responde después por el webhook firmado → `confirmarPagoDesdePasarela()`.
+4. **Pago pendiente (PSE, y Nequi con Wompi):** la pasarela responde después por el webhook firmado → `confirmarPagoDesdePasarela()`. Con Wompi, PSE devuelve además la dirección del banco a la que va la persona.
 5. **Entrega en dos pasos:** `validarQR(token)` muestra el pedido → el administrador confirma → `registrarEntrega()`. Esta última, en una transacción, marca el ficho como USADO, crea la `entrega` y llama a `ReservaService.marcarEntregada()`.
 
 ## 5. Registro de cuentas y Solicitudes

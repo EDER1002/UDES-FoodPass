@@ -84,8 +84,9 @@ Abre **http://localhost:5173** en el navegador. Para detener todo: `Ctrl + C` en
 | `npm run dev` | API (`http://localhost:3000/api`) e interfaz (`http://localhost:5173`) juntas |
 | `npm run dev:backend` / `npm run dev:frontend` | Cada una por separado, en terminales distintas |
 | `npm run dev:celular` | Igual que `dev`, pero con HTTPS para usar la cámara del celular (ver abajo) |
-| `npm test` | Pruebas automáticas del backend (97 pruebas) |
+| `npm test` | Pruebas automáticas del backend (110 pruebas) |
 | `npm run prueba:navegador` | Prueba completa en el navegador: recorre la aplicación como lo haría una persona (25 casos, ver abajo) |
+| `npm run diseno:capturas` | Vuelve a tomar los mockups de `docs/diseno/mockups/` desde la aplicación real |
 | `npm run build` | Compila la interfaz para producción en `frontend/dist/` |
 | `npm run db:seed` | **Borra todo** y vuelve a cargar los datos de ejemplo (útil para empezar de cero) |
 | `npm run pago:webhook` | Simula la respuesta del banco a un pago PSE pendiente (ver abajo) |
@@ -133,6 +134,16 @@ npm run pago:webhook -- RECHAZADO  # o lo rechaza
 La pantalla del usuario cambia sola en unos segundos. Por dentro, el comando envía a `POST /api/pagos/webhook` la notificación firmada (HMAC-SHA256 con `WEBHOOK_SECRETO`) que mandaría una pasarela real.
 
 **Reintentos seguros:** cada intento de pago lleva una `Idempotency-Key`. Si se repite (doble clic, se cayó la conexión), el sistema devuelve el mismo resultado sin cobrar dos veces.
+
+### Usar Wompi en vez del sandbox (opcional)
+
+Por defecto los pagos son simulados (`PASARELA_MODO=sandbox`) y no necesitas nada más. Para probar con el **ambiente de pruebas de Wompi** (tampoco mueve dinero real):
+
+1. Crea una cuenta de comercio en Wompi y copia, desde su panel (*Desarrolladores*), las llaves de **pruebas**: pública (`pub_test_…`), privada (`prv_test_…`), secreto de integridad y secreto de eventos.
+2. En tu `.env`, cambia `PASARELA_MODO=wompi` y llena las variables `WOMPI_*` (están explicadas en `.env.example`).
+3. En el panel de Wompi, pon como **URL de eventos** `https://<tu-servidor>/api/pagos/webhook/wompi`. Wompi necesita una dirección pública para avisar el resultado de Nequi y PSE.
+
+Los datos de prueba de Wompi son casi los mismos de la tabla de arriba; la diferencia es Nequi: `3991111111` aprueba y `3992222222` rechaza. Con Wompi, los reembolsos (cuando se agota un plato o se cancela una reserva pagada) se hacen a mano desde el panel de Wompi. Más detalles en [`docs/pasarela-de-pago.md`](docs/pasarela-de-pago.md).
 
 ## Probar el escáner de QR con el celular
 
