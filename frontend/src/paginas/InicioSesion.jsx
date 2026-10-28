@@ -13,7 +13,7 @@ const TITULOS_DE_ERROR = {
 export function InicioSesion() {
   const { iniciarSesion } = useSesion();
   const navegar = useNavigate();
-  const desde = useLocation().state?.desde;
+  const { desde, aviso } = useLocation().state ?? {};
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [verContrasena, setVerContrasena] = useState(false);
@@ -52,6 +52,12 @@ export function InicioSesion() {
       <main className="acceso-cuerpo">
         <img src="/logo.png" alt="UDES FoodPass" className="logo-grande" width="210" height="210" />
 
+        {aviso && !error && (
+          <div className="aviso exito" role="status">
+            <Icono nombre="check-circulo" />
+            <span>{aviso}</span>
+          </div>
+        )}
         {desde && desde !== '/' && !error && (
           <div className="aviso" role="status">
             <Icono nombre="info" />
@@ -108,8 +114,10 @@ export function InicioSesion() {
           <button type="submit" className="btn btn-lila" disabled={enviando || !correo || !contrasena}>
             {enviando ? <><span className="girando" aria-hidden="true" />Ingresando…</> : 'Ingresar'}
           </button>
+          <Link to="/recuperar" className="enlace">¿Olvidaste tu contraseña?</Link>
           <Link to="/registro" className="enlace">Registrarse</Link>
         </form>
+        <Link to="/ayuda" className="enlace enlace-ayuda"><Icono nombre="ayuda" />Ayuda y soporte</Link>
         <p className="nota-peq"><Icono nombre="ubicacion" />Cafetería principal · Zona de buses</p>
       </main>
     </div>

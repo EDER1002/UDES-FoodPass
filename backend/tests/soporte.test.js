@@ -206,7 +206,7 @@ describe('Ayuda y asistente', () => {
     const auth = await sesionDe(entorno, esc.usuarios.regular1);
     const r = await preguntar(auth, '¿Qué hay de menú hoy?');
     expect(r.body.tipo).toBe('menu');
-    expect(r.body.respuesta).toMatch(/proteína pollo/);
+    expect(r.body.respuesta).toMatch(/Proteínas: .*Proteína pollo/);
     expect(r.body.respuesta).toMatch(/\$12\.000/);
   });
 

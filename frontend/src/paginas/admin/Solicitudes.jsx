@@ -42,7 +42,96 @@ export function Solicitudes() {
           {datos.solicitudes.map((s) => <TarjetaSolicitud key={s.idUsuario} solicitud={s} alResolver={alResolver} />)}
         </ul>
       )}
+      <Recuperaciones />
     </div>
+  );
+}
+
+/**
+ * Personas que olvidaron su contraseña y pidieron ayuda. El administrador
+ * verifica su documento en persona y genera un código (se muestra una vez).
+ */
+function Recuperaciones() {
+  const { api } = useSesion();
+  const { datos, error, cargando, recargar } = useDatos((senal) => api('/admin/recuperaciones', { senal }), [api]);
+  const [generados, setGenerados] = useState([]);
+
+  return (
+    <section className="seccion recuperaciones" aria-labelledby="titulo-recuperaciones">
+      <div className="titulo-pagina">
+        <h2 id="titulo-recuperaciones" className="subtitulo-seccion">Recuperar contraseña</h2>
+        {datos?.solicitudes.length > 0 && <span className="estado alerta">{datos.solicitudes.length} {datos.solicitudes.length === 1 ? 'pendiente' : 'pendientes'}</span>}
+        <p>Personas que olvidaron su contraseña y no recibieron el correo. Pide su documento, verifica que coincida y genera un código para que creen una contraseña nueva.</p>
+      </div>
+      {generados.map((g) => (
+        <div key={g.usuario.idUsuario} className="aviso exito codigo-generado" role="status">
+          <Icono nombre="candado" />
+          <div>
+            <strong>Código para {g.usuario.nombreCompleto}: <span className="codigo-recuperacion">{g.codigo}</span></strong>
+            <span>Dáselo en persona. Vence a las {horaDeInstante(g.expira)} ({g.minutos} minutos) y se muestra solo esta vez. Debe escribirlo en «¿Olvidaste tu contraseña?» → «Ya tengo un código».</span>
+          </div>
+        </div>
+      ))}
+      {cargando && !datos && <Cargando texto="Cargando solicitudes de ayuda…" />}
+      {error && !datos && <PantallaDeError error={error} alReintentar={recargar} />}
+      {datos && datos.solicitudes.length === 0 && <p className="pista"><Icono nombre="check-circulo" /><span>No hay solicitudes de ayuda pendientes.</span></p>}
+      {datos && datos.solicitudes.length > 0 && (
+        <ul className="lista-solicitudes">
+          {datos.solicitudes.map((s) => (
+            <TarjetaRecuperacion key={s.idUsuario} solicitud={s} alGenerar={(g) => { setGenerados((x) => [g, ...x]); recargar(); }} alDescartar={recargar} />
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function TarjetaRecuperacion({ solicitud: s, alGenerar, alDescartar }) {
+  const { api } = useSesion();
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState(null);
+  const idBase = `recuperacion-${s.idUsuario}`;
+
+  const accion = (fn) => async () => {
+    setEnviando(true);
+    setError(null);
+    try {
+      await fn();
+    } catch (err) {
+      setError(err);
+      if (err.codigo === 'SOLICITUD_AYUDA_NO_ENCONTRADA') alDescartar();
+    } finally {
+      setEnviando(false);
+    }
+  };
+  const generar = accion(async () => alGenerar(await api(`/admin/recuperaciones/${s.idUsuario}/codigo`, { metodo: 'POST' })));
+  const descartar = accion(async () => {
+    await api(`/admin/recuperaciones/${s.idUsuario}/descartar`, { metodo: 'POST' });
+    alDescartar();
+  });
+
+  return (
+    <li className="tarjeta solicitud" aria-labelledby={`${idBase}-nombre`}>
+      <div className="reserva-cab">
+        <div className="perfil">
+          <span className="avatar" aria-hidden="true">{`${s.nombre[0] ?? ''}${s.apellido[0] ?? ''}`}</span>
+          <div>
+            <b id={`${idBase}-nombre`}>{s.nombreCompleto}</b>
+            <span>Pidió ayuda el {mayuscula(fechaCorta(fechaEnBogota(s.fechaSolicitudAyuda)))} a las {horaDeInstante(s.fechaSolicitudAyuda)}</span>
+          </div>
+        </div>
+        <span className="estado info"><Icono nombre="usuario" />{s.nombreRol}</span>
+      </div>
+      <dl className="filas">
+        <div className="fila"><dt>Documento</dt><dd>{s.documento}</dd></div>
+        <div className="fila"><dt>Correo</dt><dd>{s.correo}</dd></div>
+      </dl>
+      {error && <Aviso tono="peligro" icono="x-circulo" titulo={error.message} rol="alert" />}
+      <div className="fila-botones">
+        <button type="button" className="btn btn-primario chico" onClick={generar} disabled={enviando}><Icono nombre="candado" />Ya verifiqué su documento: generar código</button>
+        <button type="button" className="btn btn-secundario chico" onClick={descartar} disabled={enviando}>Descartar</button>
+      </div>
+    </li>
   );
 }
 

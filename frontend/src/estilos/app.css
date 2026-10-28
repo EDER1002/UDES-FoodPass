@@ -448,6 +448,10 @@ details.datos-prueba code { font-family: var(--mono); color: var(--texto); }
 .admin-usuario .quien { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .avatar.chico { width: 36px; height: 36px; font-size: 13px; background: #fff; color: var(--primario-fuerte); }
 .btn-menu-admin { display: none; }
+@media (min-width: 1240px) {
+  .admin-nav .solo-icono .texto-nav { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .admin-nav .solo-icono .ico { width: 22px; height: 22px; }
+}
 @media (max-width: 1239px) {
   .admin-header .interior { padding: 8px 16px; gap: 12px; }
   .btn-menu-admin { display: inline-flex; margin-left: auto; }
@@ -550,3 +554,39 @@ textarea.area:focus { outline: 0; border: 2px solid var(--primario); box-shadow:
 @media (max-width: 520px) {
   .solicitud .form-rejilla { grid-template-columns: 1fr; }
 }
+
+/* ---------- Ayuda, recuperación de contraseña y asistente ---------- */
+.titulo-barra { font-family: var(--fuente-titulo); font-weight: 500; font-size: 20px; text-align: center; }
+.texto-ayuda { font-size: 14.5px; color: var(--texto-suave); }
+.ayuda-campo { font-size: 13px; color: var(--texto-suave); }
+.enlace-ayuda { display: inline-flex; align-items: center; gap: 6px; }
+.enlace-ayuda .ico { width: 18px; height: 18px; }
+.subtitulo-seccion { font-size: 19px; font-weight: 800; color: var(--marino); }
+.pantalla-acceso .contenedor.ayuda { background: transparent; }
+.accion-ayuda { flex-direction: row; align-items: center; color: inherit; text-decoration: none; }
+.accion-ayuda > span:nth-child(2) { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: var(--texto-suave); }
+.accion-ayuda b { font-size: 16px; color: var(--marino); }
+.accion-ayuda .icono-grande { width: 44px; height: 44px; flex: none; }
+.accion-ayuda:hover { border-color: var(--primario); }
+.tema-ayuda { display: flex; flex-direction: column; gap: 8px; }
+.tema-ayuda h3 { font-size: 15px; font-weight: 800; color: var(--dorado-texto); margin-top: 6px; }
+.pregunta-ayuda { background: var(--superficie); border: 1px solid var(--borde); border-radius: 10px; }
+.pregunta-ayuda summary { cursor: pointer; padding: 12px 14px; font-weight: 700; color: var(--marino); min-height: 44px; list-style-position: inside; }
+.pregunta-ayuda[open] summary { border-bottom: 1px solid var(--borde-suave); }
+.pregunta-ayuda p { padding: 12px 14px; font-size: 14.5px; color: var(--texto); line-height: 1.5; }
+.asistente-titulo { display: inline-flex; align-items: center; gap: 10px; }
+.asistente-avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--lavanda); color: var(--morado); }
+.asistente-avatar .ico { width: 20px; height: 20px; }
+.asistente-mensajes { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding: 4px 2px; }
+.burbuja { max-width: 88%; padding: 10px 13px; border-radius: 14px; font-size: 14.5px; line-height: 1.45; }
+.burbuja.de-asistente { align-self: flex-start; background: var(--lavanda-suave); color: var(--texto); border-bottom-left-radius: 4px; }
+.burbuja.de-persona { align-self: flex-end; background: var(--azul-udes); color: #fff; border-bottom-right-radius: 4px; }
+.burbuja.error { background: var(--peligro-suave); color: var(--peligro); }
+.asistente-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-boton { min-height: 36px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--primario-borde); background: var(--superficie); color: var(--primario); font-size: 13.5px; font-weight: 700; cursor: pointer; text-align: left; }
+.chip-boton:hover { background: var(--primario-suave2); }
+.asistente-form { display: flex; gap: 8px; align-items: center; }
+.asistente-form .entrada { flex: 1; }
+.codigo-recuperacion { font-family: var(--mono); font-size: 22px; letter-spacing: 0.12em; }
+.recuperaciones { margin-top: 12px; }
+.accion-ayuda .icono-grande .ico { width: 24px; height: 24px; }

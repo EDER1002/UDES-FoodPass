@@ -7,6 +7,7 @@
 //   POST /__e2e/reloj     { fecha?, hora } mueve el reloj
 //   POST /__e2e/agotar    { proteina }     deja en 0 las porciones de una proteína
 //   POST /__e2e/pago-pendiente              referencia del último pago PSE pendiente
+//   POST /__e2e/ultimo-codigo { correo }     código del último correo de recuperación
 // Son atajos para preparar casos borde que en la vida real tardan horas
 // (que llegue la hora límite o que otros compren la última porción).
 import express from 'express';
@@ -33,7 +34,10 @@ await aplicarMigraciones(pool);
 
 let fechaActual = '2026-10-19';
 const reloj = relojFijo(fechaActual, '09:00:00');
-const { app } = crearApp({ pool, config, reloj, pasarela: new PasarelaSandbox({ demoraMs: 150 }) });
+// Correo de mentiras: guarda lo que se "envía" para que la prueba lea el código.
+const correosEnviados = [];
+const correo = { configurado: true, enviar: async (mensaje) => { correosEnviados.push(mensaje); } };
+const { app } = crearApp({ pool, config, reloj, pasarela: new PasarelaSandbox({ demoraMs: 150 }), correo });
 
 const control = express.Router();
 control.use(express.json());
@@ -67,6 +71,11 @@ control.post('/agotar', async (req, res) => {
 control.post('/pago-pendiente', async (_req, res) => {
   const { rows } = await pool.query("SELECT referencia_transaccion FROM pago WHERE estado_pago = 'PENDIENTE' ORDER BY id_pago DESC LIMIT 1");
   res.json({ referencia: rows[0]?.referencia_transaccion ?? null });
+});
+
+control.post('/ultimo-codigo', (req, res) => {
+  const ultimo = correosEnviados.filter((m) => m.para === req.body?.correo).at(-1);
+  res.json({ codigo: ultimo?.texto.match(/\b(\d{6})\b/)?.[1] ?? null });
 });
 
 const servidor = express();

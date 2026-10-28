@@ -71,7 +71,7 @@ export class SoporteService {
     const precios = menu.tipos.map((t) => `${t.nombre} ${pesos(t.precio)}`).join(' · ');
     return respuesta(
       'menu',
-      `Hoy hay ${lista(proteinas)} de proteína, con ${lista(acompanamientos)}. ${precios ? `Precios: ${precios}.` : ''} Para elegir, ve a Inicio.`.replace(/\s+/g, ' ').trim(),
+      `Menú de hoy. Proteínas: ${lista(proteinas)}. Acompañamientos: ${lista(acompanamientos)}. ${precios ? `Precios: ${precios}.` : ''} Para elegir, ve a Inicio.`.replace(/\s+/g, ' ').trim(),
       [],
     );
   }
@@ -175,5 +175,5 @@ function detectarIntencion(t) {
   return null;
 }
 
-const lista = (xs) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}`).toLowerCase();
+const lista = (xs) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}`);
 const pesos = (valor) => `$${Number(valor).toLocaleString('es-CO')}`;

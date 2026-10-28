@@ -11,6 +11,8 @@ const SECCIONES = [
   { ruta: '/admin/validar', nombre: 'Validar fichos', icono: 'escanear' },
   { ruta: '/admin/entregas', nombre: 'Entregas', icono: 'entrega' },
   { ruta: '/admin/solicitudes', nombre: 'Solicitudes', icono: 'grupo' },
+  // En pantalla ancha solo se ve el ícono (no cabe otra palabra en la fila); el nombre sigue para lectores de pantalla.
+  { ruta: '/admin/ayuda', nombre: 'Ayuda', icono: 'ayuda', soloIcono: true },
 ];
 
 export function DisenoAdmin() {
@@ -39,7 +41,9 @@ export function DisenoAdmin() {
           </button>
           <nav id="nav-admin" className={`admin-nav ${menuAbierto ? 'abierta' : ''}`} aria-label="Administración">
             {SECCIONES.map((s) => (
-              <NavLink key={s.ruta} to={s.ruta} end={s.fin}><Icono nombre={s.icono} />{s.nombre}</NavLink>
+              s.soloIcono
+                ? <NavLink key={s.ruta} to={s.ruta} end={s.fin} className="solo-icono" title={s.nombre}><Icono nombre={s.icono} /><span className="texto-nav">{s.nombre}</span></NavLink>
+                : <NavLink key={s.ruta} to={s.ruta} end={s.fin}><Icono nombre={s.icono} />{s.nombre}</NavLink>
             ))}
             <button type="button" className="salir-movil" onClick={salir}><Icono nombre="salir" />Cerrar sesión</button>
           </nav>
