@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { ErrorAplicacion, conflicto, esViolacionUnica, noAutenticado, noEncontrado } from '../../compartido/errores.js';
@@ -11,11 +12,12 @@ export class AutenticacionService {
   #hashFalso = null;
   #alAprobar = null;
 
-  constructor({ db, repositorio, config, reloj }) {
+  constructor({ db, repositorio, config, reloj, correo = null }) {
     this.db = db;
     this.repositorio = repositorio;
     this.config = config;
     this.reloj = reloj;
+    this.correo = correo;
   }
 
   /**
@@ -88,6 +90,106 @@ export class AutenticacionService {
       const rechazado = await this.repositorio.revisar(idUsuario, { estado: 'RECHAZADA', idRevisor, motivo, fecha: this.#ahora() }, tx);
       return aUsuarioPublico(rechazado);
     });
+  }
+
+  // =================================================================
+  // Recuperación de contraseña
+  // =================================================================
+
+  /**
+   * Envía al correo un código de 6 dígitos para crear una contraseña nueva.
+   * Responde igual exista o no la cuenta, para no revelar qué correos están
+   * registrados. Solo las cuentas activas reciben código.
+   */
+  async solicitarCodigoRecuperacion(correo) {
+    const enviar = await this.db.transaccion(async (tx) => {
+      const usuario = await this.repositorio.bloquearPorCorreo(correo, tx);
+      if (!usuario || usuario.estado_cuenta !== 'ACTIVA') return null;
+      const codigo = String(randomInt(0, 1_000_000)).padStart(6, '0');
+      const expira = new Date(this.#ahora().getTime() + MINUTOS_CODIGO_CORREO * 60_000);
+      await this.repositorio.guardarCodigoRecuperacion(usuario.id_usuario, { hash: await bcrypt.hash(codigo, this.config.bcryptRondas), expira }, tx);
+      return { usuario, codigo };
+    });
+    if (enviar) {
+      await this.correo?.enviar({
+        para: enviar.usuario.correo,
+        asunto: 'Tu código para recuperar la contraseña de UDES FoodPass',
+        texto:
+          `Hola, ${enviar.usuario.nombre}.\n\n` +
+          `Tu código para crear una contraseña nueva es: ${enviar.codigo}\n\n` +
+          `Vence en ${MINUTOS_CODIGO_CORREO} minutos. Si no lo pediste, ignora este correo: tu contraseña sigue igual.\n\n` +
+          'UDES FoodPass · Cafetería principal, zona de buses',
+      });
+    }
+    return { mensaje: MENSAJE_CODIGO_ENVIADO, correoConfigurado: Boolean(this.correo?.configurado) };
+  }
+
+  /**
+   * La persona pide ayuda al administrador (por ejemplo, si no le llega el
+   * correo). Solo queda registrada si el correo y el documento coinciden con
+   * una cuenta activa, pero la respuesta es siempre la misma.
+   */
+  async solicitarAyudaRecuperacion(correo, documento) {
+    const usuario = await this.repositorio.buscarPorCorreo(correo);
+    if (usuario && usuario.estado_cuenta === 'ACTIVA' && usuario.documento === documento) {
+      await this.repositorio.marcarSolicitudAyuda(usuario.id_usuario, this.#ahora());
+    }
+    return { mensaje: MENSAJE_AYUDA_REGISTRADA };
+  }
+
+  async listarSolicitudesAyuda() {
+    return (await this.repositorio.listarSolicitudesAyuda()).map(aUsuarioPublico);
+  }
+
+  /**
+   * El administrador ya verificó en persona la identidad (documento) y genera
+   * un código para que la persona cree su contraseña nueva. El código se
+   * muestra una sola vez y no se guarda en claro.
+   */
+  async generarCodigoPorAdministrador(idUsuario) {
+    return this.db.transaccion(async (tx) => {
+      const usuario = await this.repositorio.bloquearConCodigo(idUsuario, tx);
+      if (!usuario || !usuario.fecha_solicitud_ayuda) {
+        throw noEncontrado('SOLICITUD_AYUDA_NO_ENCONTRADA', 'Esta solicitud de ayuda ya fue atendida o no existe.');
+      }
+      const codigo = String(randomInt(0, 1_000_000)).padStart(6, '0');
+      const expira = new Date(this.#ahora().getTime() + MINUTOS_CODIGO_ADMIN * 60_000);
+      await this.repositorio.guardarCodigoRecuperacion(idUsuario, { hash: await bcrypt.hash(codigo, this.config.bcryptRondas), expira, quitarAyuda: true }, tx);
+      return { codigo, expira: expira.toISOString(), minutos: MINUTOS_CODIGO_ADMIN, usuario: aUsuarioPublico(usuario) };
+    });
+  }
+
+  async descartarSolicitudAyuda(idUsuario) {
+    if (!(await this.repositorio.quitarSolicitudAyuda(idUsuario))) {
+      throw noEncontrado('SOLICITUD_AYUDA_NO_ENCONTRADA', 'Esta solicitud de ayuda ya fue atendida o no existe.');
+    }
+  }
+
+  /** Cambia la contraseña si el código es correcto, no ha vencido y quedan intentos. */
+  async restablecerContrasena({ correo, codigo, contrasena }) {
+    const resultado = await this.db.transaccion(async (tx) => {
+      const usuario = await this.repositorio.bloquearPorCorreo(correo, tx);
+      const vigente = usuario?.codigo_recuperacion_hash && usuario.codigo_recuperacion_expira > this.#ahora();
+      if (!vigente) {
+        // Se compara igual, para que la respuesta tarde lo mismo exista o no la cuenta.
+        await bcrypt.compare(codigo, this.#obtenerHashFalso());
+        return 'INVALIDO';
+      }
+      if (usuario.codigo_recuperacion_intentos >= MAX_INTENTOS_CODIGO) return 'AGOTADO';
+      if (!(await bcrypt.compare(codigo, usuario.codigo_recuperacion_hash))) {
+        await this.repositorio.registrarIntentoFallido(usuario.id_usuario, tx);
+        return usuario.codigo_recuperacion_intentos + 1 >= MAX_INTENTOS_CODIGO ? 'AGOTADO' : 'INVALIDO';
+      }
+      await this.repositorio.cambiarContrasena(usuario.id_usuario, await bcrypt.hash(contrasena, this.config.bcryptRondas), tx);
+      return 'OK';
+    });
+    if (resultado === 'AGOTADO') {
+      throw new ErrorAplicacion('CODIGO_AGOTADO', 'Escribiste mal el código demasiadas veces. Pide un código nuevo.', 400);
+    }
+    if (resultado === 'INVALIDO') {
+      throw new ErrorAplicacion('CODIGO_INVALIDO', 'El código no es correcto o ya venció. Revísalo o pide uno nuevo.', 400);
+    }
+    return { mensaje: 'Listo, tu contraseña cambió. Ya puedes iniciar sesión con la nueva.' };
   }
 
   /**
@@ -167,6 +269,14 @@ export class AutenticacionService {
   }
 }
 
+const MINUTOS_CODIGO_CORREO = 15;
+const MINUTOS_CODIGO_ADMIN = 60;
+const MAX_INTENTOS_CODIGO = 5;
+const MENSAJE_CODIGO_ENVIADO =
+  'Si el correo pertenece a una cuenta activa, te enviamos un código de 6 dígitos. Revisa tu bandeja de entrada y la carpeta de spam.';
+const MENSAJE_AYUDA_REGISTRADA =
+  'Recibimos tu solicitud. Acércate a la caja de la cafetería con tu documento: el administrador verificará que eres tú y te dará un código.';
+
 const MENSAJE_EN_REVISION =
   'Tu cuenta quedó en revisión. Un administrador verificará tus datos y tu rol; cuando la apruebe podrás iniciar sesión.';
 
@@ -194,5 +304,6 @@ function aUsuarioPublico(u) {
     nombreRol: NOMBRES_DE_ROL[u.nombre_rol],
     estadoCuenta: u.estado_cuenta,
     fechaRegistro: u.fecha_registro,
+    ...(u.fecha_solicitud_ayuda ? { fechaSolicitudAyuda: u.fecha_solicitud_ayuda } : {}),
   };
 }

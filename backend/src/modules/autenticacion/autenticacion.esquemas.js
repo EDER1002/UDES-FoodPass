@@ -17,6 +17,18 @@ const nombrePropio = (campo) =>
     .max(80, { error: `El ${campo} es demasiado largo` })
     .regex(/^[\p{L}' .-]+$/u, { error: `El ${campo} solo puede tener letras` });
 
+// bcrypt solo usa los primeros 72 bytes.
+const contrasenaNueva = z
+  .string({ error: 'Crea una contraseña' })
+  .min(8, { error: 'La contraseña debe tener al menos 8 caracteres' })
+  .max(72, { error: 'La contraseña puede tener máximo 72 caracteres' })
+  .refine((c) => /\p{L}/u.test(c) && /\d/.test(c), { error: 'La contraseña debe tener letras y números' });
+
+const documento = z
+  .string({ error: 'Escribe tu número de documento' })
+  .trim()
+  .regex(/^\d{6,15}$/, { error: 'El documento debe tener entre 6 y 15 dígitos, sin puntos' });
+
 export const esquemaLogin = z.object({
   correo: correoInstitucional,
   contrasena: z
@@ -32,10 +44,7 @@ export const esquemaBusquedaUsuarios = z.object({
 export const esquemaRegistro = z.object({
   nombre: nombrePropio('nombre'),
   apellido: nombrePropio('apellido'),
-  documento: z
-    .string({ error: 'Escribe tu número de documento' })
-    .trim()
-    .regex(/^\d{6,15}$/, { error: 'El documento debe tener entre 6 y 15 dígitos, sin puntos' }),
+  documento,
   correo: correoInstitucional,
   telefono: z
     .string()
@@ -43,12 +52,7 @@ export const esquemaRegistro = z.object({
     .regex(/^3\d{9}$/, { error: 'El celular debe tener 10 dígitos y empezar por 3' })
     .optional()
     .or(z.literal('').transform(() => undefined)),
-  // bcrypt solo usa los primeros 72 bytes.
-  contrasena: z
-    .string({ error: 'Crea una contraseña' })
-    .min(8, { error: 'La contraseña debe tener al menos 8 caracteres' })
-    .max(72, { error: 'La contraseña puede tener máximo 72 caracteres' })
-    .refine((c) => /\p{L}/u.test(c) && /\d/.test(c), { error: 'La contraseña debe tener letras y números' }),
+  contrasena: contrasenaNueva,
   rol: z.enum(Object.values(ROLES), { error: 'Elige tu rol' }),
 });
 
@@ -68,4 +72,18 @@ export const esquemaRechazo = z.object({
     .trim()
     .min(5, { error: 'Escribe el motivo del rechazo (mínimo 5 caracteres)' })
     .max(200, { error: 'El motivo puede tener máximo 200 caracteres' }),
+});
+
+export const esquemaSolicitarCodigo = z.object({ correo: correoInstitucional });
+
+export const esquemaSolicitarAyuda = z.object({ correo: correoInstitucional, documento });
+
+export const esquemaRestablecer = z.object({
+  correo: correoInstitucional,
+  // Se aceptan espacios al copiarlo del correo: "123 456".
+  codigo: z
+    .string({ error: 'Escribe el código de 6 dígitos' })
+    .transform((c) => c.replace(/\s/g, ''))
+    .pipe(z.string().regex(/^\d{6}$/, { error: 'El código tiene 6 dígitos' })),
+  contrasena: contrasenaNueva,
 });
