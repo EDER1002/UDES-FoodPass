@@ -173,3 +173,67 @@ Autenticación no importa a Reservas: recibe una función con `auth.conectarAlAp
 5. **Aprobar:** `aprobarCuenta()` abre una transacción → bloquea la fila (`SELECT ... FOR UPDATE`) → si es subsidiado, `ReservaService.otorgarBeneficio()` crea el beneficio → la cuenta pasa a ACTIVA con `idRevisor` y `fechaRevision`.
 6. **Rama alternativa, rechazar:** `rechazarCuenta()` deja la cuenta RECHAZADA con el motivo. Al intentar entrar, la persona ve ese motivo.
 7. **Rama alternativa, ya revisada:** si otro administrador la revisó primero, responde `SOLICITUD_YA_REVISADA`.
+
+## 6. Soporte: recuperar la contraseña, Ayuda y asistente
+
+Se agregó después de los diagramas, a pedido del usuario (decisiones "Recuperación de contraseña" y "Asistente" de `CLAUDE.md`, sección 13; migración `007_recuperacion_de_contrasena.sql`). **Siguen siendo 16 tablas:** los datos nuevos son columnas de `usuario` y el módulo Soporte no tiene tablas propias.
+
+### 6.1 Diagrama de clases (completo): atributos nuevos de `Usuario`
+
+| Atributo nuevo | Tipo | Para qué |
+|---|---|---|
+| `codigoRecuperacionHash` | texto, opcional | Hash (bcrypt) del código de 6 dígitos. El código nunca se guarda en claro |
+| `codigoRecuperacionExpira` | fecha y hora, opcional | 15 minutos si llegó por correo, 60 si lo dio el administrador |
+| `codigoRecuperacionIntentos` | entero (≥ 0) | Al quinto código equivocado se bloquea y hay que pedir otro |
+| `fechaSolicitudAyuda` | fecha y hora, opcional | La persona pidió ayuda al administrador y aún no la atienden |
+
+### 6.2 Diagrama de clases de procesos: operaciones nuevas
+
+**`AutenticacionService`**
+
+| Operación | Para qué |
+|---|---|
+| `solicitarCodigoRecuperacion(correo)` | Genera el código (`crypto.randomInt`) y lo envía por correo. Responde igual exista o no la cuenta |
+| `solicitarAyudaRecuperacion(correo, documento)` | Si el correo y el documento coinciden con una cuenta activa, deja la solicitud para el administrador |
+| `listarSolicitudesAyuda()` | Lista de la sección "Recuperar contraseña" en Solicitudes |
+| `generarCodigoPorAdministrador(idUsuario)` | El administrador ya verificó el documento en persona: genera un código y lo muestra una sola vez |
+| `descartarSolicitudAyuda(idUsuario)` | Quita una solicitud sin generar código |
+| `restablecerContrasena({ correo, codigo, contrasena })` | Verifica código, vencimiento e intentos y cambia la contraseña (bcrypt) en una transacción |
+
+**`SoporteService`** (módulo nuevo `soporte/`)
+
+| Operación | Para qué |
+|---|---|
+| `listarPreguntas({ esAdmin })` | Preguntas frecuentes por tema para la página de Ayuda |
+| `responder(usuario, mensaje)` | Asistente sin IA externa: responde "menú de hoy", "hora límite" y "mi reserva" con datos reales, y lo demás con la pregunta frecuente más parecida |
+
+**Clase de apoyo nueva:** `Correo` (`backend/src/compartido/correo.js`) con `enviar({ para, asunto, texto })`. Usa SMTP si está configurado en `.env`; si no, en desarrollo escribe el correo en la consola de la API.
+
+### 6.3 Diagrama de componentes: componente y dependencias nuevas
+
+| Desde | Hacia | Operación que usa | ¿Está en el diagrama? |
+|---|---|---|---|
+| **Soporte** (nuevo) | **Gestión de Menú** | `consultarMenu()` | **No: agregar** |
+| **Soporte** (nuevo) | **Reservas y Pagos** | `contextoDelDia()` | **No: agregar** |
+| **Autenticación** | **Correo** (servicio externo SMTP) | `enviar()` | **No: agregar** |
+
+### 6.4 Endpoints nuevos
+
+| Método y ruta | Operación | Acceso |
+|---|---|---|
+| `POST /api/auth/recuperar/codigo` | `solicitarCodigoRecuperacion()` | Público (máx. 3 códigos por correo cada 15 min) |
+| `POST /api/auth/recuperar/ayuda` | `solicitarAyudaRecuperacion()` | Público (límite por IP) |
+| `POST /api/auth/recuperar/restablecer` | `restablecerContrasena()` | Público (límite por IP y correo) |
+| `GET /api/admin/recuperaciones` | `listarSolicitudesAyuda()` | Admin |
+| `POST /api/admin/recuperaciones/:id/codigo` | `generarCodigoPorAdministrador()` | Admin |
+| `POST /api/admin/recuperaciones/:id/descartar` | `descartarSolicitudAyuda()` | Admin |
+| `GET /api/soporte/preguntas` | `listarPreguntas()` | Público |
+| `GET /api/soporte/preguntas/todas` | `listarPreguntas({ esAdmin })` | Con sesión |
+| `POST /api/soporte/asistente` | `responder()` | Con sesión (40 mensajes cada 10 min) |
+
+### 6.5 Diagrama de secuencia nuevo (sugerido): "Recuperar la contraseña"
+
+1. La persona toca "¿Olvidaste tu contraseña?" y escribe su correo → `solicitarCodigoRecuperacion()` → se guarda el hash del código con vencimiento de 15 minutos → `Correo.enviar()`.
+2. **Rama alternativa, no le llega el correo:** "Pedir ayuda al administrador" con correo y documento → `solicitarAyudaRecuperacion()`. En la caja, el administrador revisa el documento y en Solicitudes toca "generar código" → `generarCodigoPorAdministrador()` (60 minutos).
+3. La persona escribe el código y su contraseña nueva → `restablecerContrasena()` → bloquea la fila del usuario, compara el código y cambia la contraseña. El código queda borrado y no sirve otra vez.
+4. **Ramas alternativas:** código equivocado (suma un intento), vencido o con 5 intentos fallidos → mensaje claro y hay que pedir otro.

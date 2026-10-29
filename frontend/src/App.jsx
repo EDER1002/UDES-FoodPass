@@ -1,8 +1,11 @@
-import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
+import { Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { Encabezado } from './componentes/Encabezado.jsx';
 import { useSesion } from './sesion/SesionContexto.jsx';
 import { CrearCuenta } from './paginas/CrearCuenta.jsx';
 import { InicioSesion } from './paginas/InicioSesion.jsx';
+import { RecuperarContrasena } from './paginas/RecuperarContrasena.jsx';
+import { Ayuda } from './paginas/Ayuda.jsx';
+import { Icono } from './componentes/Icono.jsx';
 import { MenuDelDia } from './paginas/usuario/MenuDelDia.jsx';
 import { MiFicho } from './paginas/usuario/MiFicho.jsx';
 import { MisReservas } from './paginas/usuario/MisReservas.jsx';
@@ -41,12 +44,33 @@ function DisenoUsuario() {
   );
 }
 
+/** Ayuda sin sesión (por ejemplo, si olvidaste tu contraseña). */
+function DisenoPublico() {
+  return (
+    <div className="pantalla-acceso">
+      <header className="barra-titulo">
+        <div className="interior">
+          <Link to="/ingresar" aria-label="Volver a iniciar sesión"><Icono nombre="chev-izq" /></Link>
+          <p className="titulo-barra">UDES FoodPass</p>
+        </div>
+      </header>
+      <main id="contenido" tabIndex={-1} style={{ outline: 'none', flex: 1 }}>
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+
 export function App() {
   const { usuario } = useSesion();
   return (
     <Routes>
       <Route path="/ingresar" element={usuario ? <Navigate to={usuario.rol === ADMIN ? '/admin' : '/'} replace /> : <InicioSesion />} />
       <Route path="/registro" element={usuario ? <Navigate to="/" replace /> : <CrearCuenta />} />
+      <Route path="/recuperar" element={usuario ? <Navigate to="/" replace /> : <RecuperarContrasena />} />
+      <Route path="/ayuda" element={!usuario ? <DisenoPublico /> : usuario.rol === ADMIN ? <Navigate to="/admin/ayuda" replace /> : <DisenoUsuario />}>
+        <Route index element={<Ayuda />} />
+      </Route>
       <Route element={<Protegida />}>
         <Route element={<DisenoUsuario />}>
           <Route index element={<MenuDelDia />} />
@@ -67,6 +91,7 @@ export function App() {
           <Route path="validar" element={<ValidarFicho />} />
           <Route path="entregas" element={<Entregas />} />
           <Route path="solicitudes" element={<Solicitudes />} />
+          <Route path="ayuda" element={<Ayuda />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

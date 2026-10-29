@@ -17,6 +17,12 @@ const esquema = z.object({
   WOMPI_SECRETO_INTEGRIDAD: z.string().optional(),
   WOMPI_SECRETO_EVENTOS: z.string().optional(),
   WOMPI_URL_RETORNO: z.url({ error: 'WOMPI_URL_RETORNO debe ser una dirección web completa' }).optional(),
+  // Correo para la recuperación de contraseña (opcional, ver .env.example)
+  SMTP_HOST: z.string().trim().optional(),
+  SMTP_PUERTO: z.coerce.number().int().positive().default(587),
+  SMTP_USUARIO: z.string().trim().optional(),
+  SMTP_CLAVE: z.string().optional(),
+  SMTP_REMITENTE: z.string().trim().optional(),
 }).superRefine((c, ctx) => {
   if (c.PASARELA_MODO !== 'wompi') return;
   const prefijo = c.WOMPI_AMBIENTE === 'sandbox' ? 'test' : 'prod';
@@ -31,6 +37,10 @@ const esquema = z.object({
   exigir('WOMPI_LLAVE_PRIVADA', 'prv');
   exigir('WOMPI_SECRETO_INTEGRIDAD');
   exigir('WOMPI_SECRETO_EVENTOS');
+}).superRefine((c, ctx) => {
+  if (c.SMTP_HOST && (!c.SMTP_USUARIO || !c.SMTP_CLAVE)) {
+    ctx.addIssue({ code: 'custom', path: ['SMTP_USUARIO'], message: 'Con SMTP_HOST también debes llenar SMTP_USUARIO y SMTP_CLAVE' });
+  }
 });
 
 /**
@@ -70,5 +80,14 @@ export function cargarConfig(entorno = process.env) {
             }
           : null,
     },
+    correo: config.SMTP_HOST
+      ? {
+          host: config.SMTP_HOST,
+          puerto: config.SMTP_PUERTO,
+          usuario: config.SMTP_USUARIO,
+          clave: config.SMTP_CLAVE,
+          remitente: config.SMTP_REMITENTE || `UDES FoodPass <${config.SMTP_USUARIO}>`,
+        }
+      : null,
   };
 }

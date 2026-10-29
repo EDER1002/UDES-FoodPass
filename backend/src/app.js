@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import { manejarErrores, rutaNoEncontrada } from './compartido/errores.js';
 import { crearReloj } from './compartido/reloj.js';
 import { ROLES } from './compartido/roles.js';
+import { crearCorreo } from './compartido/correo.js';
 import { BaseDeDatos } from './db/conexion.js';
 import { AutenticacionRepositorio } from './modules/autenticacion/autenticacion.repositorio.js';
 import { AutenticacionService } from './modules/autenticacion/autenticacion.service.js';
@@ -18,6 +19,8 @@ import { PasarelaSandbox } from './modules/reservas-pagos/pagos/pasarela/Pasarel
 import { ReservaRepositorio } from './modules/reservas-pagos/reserva.repositorio.js';
 import { ReservaService } from './modules/reservas-pagos/reserva.service.js';
 import { rutasReservasPagos } from './modules/reservas-pagos/reservas-pagos.rutas.js';
+import { SoporteService } from './modules/soporte/soporte.service.js';
+import { rutasSoporte } from './modules/soporte/soporte.rutas.js';
 import { ValidacionQRRepositorio } from './modules/validacion-qr/validacion-qr.repositorio.js';
 import { ValidacionQRService } from './modules/validacion-qr/validacion-qr.service.js';
 import { rutasValidacionQR } from './modules/validacion-qr/validacion-qr.rutas.js';
@@ -27,10 +30,10 @@ import { rutasValidacionQR } from './modules/validacion-qr/validacion-qr.rutas.j
  * dependencias. Las pruebas la usan con su propia base de datos, un reloj
  * fijo y una pasarela sandbox observable.
  */
-export function crearApp({ pool, config, reloj = crearReloj(), pasarela = new PasarelaSandbox() }) {
+export function crearApp({ pool, config, reloj = crearReloj(), pasarela = new PasarelaSandbox(), correo = crearCorreo(config) }) {
   const db = new BaseDeDatos(pool);
 
-  const auth = new AutenticacionService({ db, repositorio: new AutenticacionRepositorio(db), config, reloj });
+  const auth = new AutenticacionService({ db, repositorio: new AutenticacionRepositorio(db), config, reloj, correo });
   const menu = new GestionMenuService({ db, repositorio: new GestionMenuRepositorio(db) });
   const fichos = new ValidacionQRService({ db, repositorio: new ValidacionQRRepositorio(db), reloj });
   const reservas = new ReservaService({
@@ -45,6 +48,7 @@ export function crearApp({ pool, config, reloj = crearReloj(), pasarela = new Pa
     pasarelaReal: Boolean(pasarela.confirmaPorWebhook),
   });
   fichos.conectarReservas(reservas);
+  const soporte = new SoporteService({ menu, reservas, reloj });
   // Al aprobar la cuenta de un subsidiado se crea su beneficio en la misma transacción.
   auth.conectarAlAprobar(async (usuario, datos, tx) => {
     if (usuario.rol === ROLES.SUBSIDIADO) await reservas.otorgarBeneficio({ ...datos, idUsuario: usuario.idUsuario, idRol: usuario.idRol }, tx);
@@ -69,8 +73,9 @@ export function crearApp({ pool, config, reloj = crearReloj(), pasarela = new Pa
   app.use('/api', rutasGestionMenu({ menu, reloj, sesion, soloAdmin, contarSelecciones: (idMenu) => reservas.conteoSelecciones(idMenu) }));
   app.use('/api', rutasReservasPagos({ reservas, pasarela, config, sesion, soloAdmin }));
   app.use('/api', rutasValidacionQR({ fichos, reservas, auth, reloj, sesion, soloAdmin }));
+  app.use('/api', rutasSoporte({ soporte, sesion }));
   app.use(rutaNoEncontrada);
   app.use(manejarErrores);
 
-  return { app, servicios: { auth, menu, reservas, fichos }, pasarela };
+  return { app, servicios: { auth, menu, reservas, fichos, soporte }, pasarela };
 }

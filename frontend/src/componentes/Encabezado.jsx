@@ -3,7 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useSesion } from '../sesion/SesionContexto.jsx';
 import { Icono } from './Icono.jsx';
 
-/** Encabezado del usuario: avatar, nombre y menú desplegable (Inicio, Pagos, QR's y Cerrar Sesión). */
+/** Encabezado del usuario: avatar, nombre y menú desplegable (Inicio, Pagos, QR's, Ayuda y Cerrar Sesión). */
 export function Encabezado() {
   const { usuario, cerrarSesion } = useSesion();
   const [abierto, setAbierto] = useState(false);
@@ -70,6 +70,7 @@ export function Encabezado() {
               <NavLink to="/" end className="nav-item">Inicio</NavLink>
               <NavLink to="/pagos" className="nav-item">Pagos</NavLink>
               <NavLink to="/qr" className="nav-item">QR&apos;s</NavLink>
+              <NavLink to="/ayuda" className="nav-item">Ayuda</NavLink>
               <button type="button" className="nav-item salir" onClick={salir}>Cerrar Sesión</button>
             </div>
           </nav>

@@ -84,8 +84,8 @@ Abre **http://localhost:5173** en el navegador. Para detener todo: `Ctrl + C` en
 | `npm run dev` | API (`http://localhost:3000/api`) e interfaz (`http://localhost:5173`) juntas |
 | `npm run dev:backend` / `npm run dev:frontend` | Cada una por separado, en terminales distintas |
 | `npm run dev:celular` | Igual que `dev`, pero con HTTPS para usar la cámara del celular (ver abajo) |
-| `npm test` | Pruebas automáticas del backend (110 pruebas) |
-| `npm run prueba:navegador` | Prueba completa en el navegador: recorre la aplicación como lo haría una persona (25 casos, ver abajo) |
+| `npm test` | Pruebas automáticas del backend (128 pruebas) |
+| `npm run prueba:navegador` | Prueba completa en el navegador: recorre la aplicación como lo haría una persona (30 casos, ver abajo) |
 | `npm run diseno:capturas` | Vuelve a tomar los mockups de `docs/diseno/mockups/` desde la aplicación real |
 | `npm run build` | Compila la interfaz para producción en `frontend/dist/` |
 | `npm run db:seed` | **Borra todo** y vuelve a cargar los datos de ejemplo (útil para empezar de cero) |
@@ -107,6 +107,13 @@ Son **datos de ejemplo, solo para desarrollo**. La contraseña de todos es **`Fo
 | `nuevo.profesor@udes.edu.co` | Jorge Castro | Empleado UDES | Cuenta **en revisión** |
 
 **Crear cuenta:** cualquiera puede registrarse desde "Registrarse" con un correo `@udes.edu.co`. El estudiante regular queda activo de una vez; el subsidiado, el empleado y el administrador quedan en revisión hasta que un administrador los apruebe (o los rechace con un motivo, que la persona ve al intentar entrar).
+
+**¿Olvidaste tu contraseña?** En el inicio de sesión hay un enlace para recuperarla:
+
+- **Por correo:** llega un código de 6 dígitos que vence en 15 minutos. Para que el correo salga de verdad, llena las variables `SMTP_*` de tu `.env` (ver `.env.example`; con Gmail necesitas una "clave de aplicación"). **Sin SMTP**, mientras desarrollas, el correo con el código aparece en la terminal donde corre la API (`npm run dev`).
+- **Con ayuda del administrador:** si el correo no llega, la persona pide ayuda con su correo y documento. El administrador la ve en **Solicitudes → Recuperar contraseña**, revisa su documento en persona y genera un código (vence en 60 minutos).
+
+**Ayuda y asistente:** la página **Ayuda** (menú del usuario, panel del administrador o enlace en el inicio de sesión) tiene las preguntas frecuentes con buscador. Con sesión iniciada aparece también el **Asistente FoodPass**, un chat que responde el menú de hoy, la hora límite, el estado de tu reserva y las preguntas frecuentes. No usa IA externa ni necesita llaves.
 
 El seed publica un menú para hoy y los próximos 13 días, con horario de reserva de 00:00 a 23:59 para que puedas probar a cualquier hora. "Maduro frito" empieza **agotado** y "Filete de tilapia" tiene solo 3 porciones, para ver esos estados.
 
@@ -165,16 +172,16 @@ Si la cámara no está disponible, el administrador puede **escribir el token** 
 - **Necesita el navegador de Playwright.** La primera vez descárgalo con `npx playwright install chromium` (unos 170 MB, se guarda en `~/.cache/ms-playwright`, no instala nada en el sistema). En Arch Linux, si ese Chromium no arranca, usa el del sistema: `NAVEGADOR_RUTA=/usr/bin/chromium npm run prueba:navegador`.
 - Si algo falla, el informe queda en `playwright-report/` (ábrelo con `npx playwright show-report playwright-report`), con capturas de pantalla y una grabación paso a paso del caso que falló.
 
-Los casos están en [`e2e/`](e2e/): `usuario.spec.js`, `administrador.spec.js` y `camara.spec.js`.
+Los casos están en [`e2e/`](e2e/): `usuario.spec.js`, `administrador.spec.js`, `camara.spec.js` y `soporte.spec.js`.
 
 ## Estructura del repositorio
 
 ```
 UDES-FoodPass/
 ├── backend/
-│   ├── src/modules/       autenticacion · gestion-menu · reservas-pagos · validacion-qr
+│   ├── src/modules/       autenticacion · gestion-menu · reservas-pagos · validacion-qr · soporte
 │   │                      (cada uno con *.service, *.repositorio, *.rutas y *.esquemas)
-│   ├── src/compartido/    reloj (zona Bogotá), errores, validación y roles
+│   ├── src/compartido/    reloj (zona Bogotá), errores, validación, roles y correo
 │   ├── src/db/            conexión, migraciones SQL y datos de ejemplo
 │   ├── src/herramientas/  simulador del webhook de pagos
 │   └── tests/             pruebas con Vitest + Supertest
@@ -196,7 +203,10 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
 | Método y ruta | Qué hace | Acceso |
 |---|---|---|
 | `POST /api/auth/login` | Inicia sesión y devuelve el JWT | Público |
+| `POST /api/auth/recuperar/codigo` · `/ayuda` · `/restablecer` | Recuperar la contraseña (código por correo o del administrador) | Público (con límites) |
 | `GET /api/auth/me` | Datos del usuario | Con sesión |
+| `GET /api/soporte/preguntas` | Preguntas frecuentes de la página Ayuda | Público |
+| `POST /api/soporte/asistente` | Asistente: responde una pregunta | Con sesión |
 | `GET /api/menu/hoy` | Menú del día con porciones | Con sesión |
 | `GET /api/reservas/contexto` | Horario, subsidio y reserva activa de hoy | Usuarios |
 | `POST /api/reservas` | Crea la reserva | Usuarios (no administradores) |
@@ -212,6 +222,7 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
 | `POST /api/admin/fichos/validar` | Valida un token y muestra el pedido | Administrador |
 | `POST /api/admin/fichos/:id/entregar` | Registra la entrega | Administrador |
 | `GET /api/admin/entregas?fecha=` | Entregas del día | Administrador |
+| `GET /api/admin/recuperaciones` · `POST /api/admin/recuperaciones/:id/{codigo,descartar}` | Ayuda para recuperar contraseñas | Administrador |
 
 ## Seguridad
 
@@ -222,6 +233,7 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
 - Nunca se guardan números de tarjeta, CVC ni otros datos sensibles de pago: solo el método, el monto y la referencia.
 - Las porciones se descuentan de forma atómica (no hay sobreventa) y el ficho QR contiene **solo** un token aleatorio, sin datos personales.
 - Los secretos viven en `.env`, que nunca se sube a GitHub.
+- Recuperar la contraseña: el código es de 6 dígitos, se guarda cifrado (bcrypt), vence (15 o 60 min), se bloquea al quinto intento fallido y sirve una sola vez. Las respuestas no revelan qué correos están registrados.
 
 ## Diseño
 

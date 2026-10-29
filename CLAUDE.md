@@ -74,6 +74,7 @@ Cada módulo tiene sus tablas. **Un módulo nunca consulta las tablas de otro**:
 | `gestion-menu/` | `GestionMenuService` | `publicarMenu()`, `consultarMenu()`, `descontarPorcion()` | `menu`, `tipo_almuerzo`, `proteina`, `acompanamiento`, `menu_proteina`, `menu_acompanamiento` | — |
 | `reservas-pagos/` | `ReservaService` | `crearReserva()`, `procesarPago()`, `cancelarReserva()` | `configuracion_reserva`, `beneficio_subsidiado`, `reserva`, `reserva_proteina`, `reserva_acompanamiento`, `pago` | Autenticación, Gestión de Menú, Validación QR |
 | `validacion-qr/` | `ValidacionQRService` | `generarFichoQR()`, `validarQR()`, `registrarEntrega()` | `ficho_qr`, `entrega` | Reservas y Pagos, Autenticación |
+| `soporte/` | `SoporteService` | `listarPreguntas()`, `responder()` | — (preguntas frecuentes en `preguntas-frecuentes.js`) | Gestión de Menú, Reservas y Pagos |
 
 Las operaciones extra que no están en los diagramas, y las dependencias nuevas, están en `docs/cambios-uml.md`. Reservas y Validación QR dependen una de la otra: se conectan en `backend/src/app.js` con `fichos.conectarReservas(reservas)`. Del mismo modo, Autenticación llama a `ReservaService.otorgarBeneficio()` al aprobar a un subsidiado, conectado con `auth.conectarAlAprobar(...)`.
 
@@ -154,7 +155,10 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
 |---|---|---|
 | `POST /api/auth/login` | `iniciarSesion()` | Público |
 | `POST /api/auth/registro` | `registrarse()` | Público (límite por IP) |
+| `POST /api/auth/recuperar/{codigo,ayuda,restablecer}` | Recuperar la contraseña | Público (límites por correo e IP) |
 | `GET /api/auth/me` | Datos del usuario | Autenticado |
+| `GET /api/soporte/preguntas[/todas]` | `listarPreguntas()` | Público (`/todas` con sesión, suma las de admin) |
+| `POST /api/soporte/asistente` | `responder()` | Autenticado |
 | `GET /api/menu/hoy` | `consultarMenu()` | Autenticado |
 | `POST /api/reservas` | `crearReserva()` | No administradores |
 | `POST /api/reservas/:id/pago` | `procesarPago()` + `Idempotency-Key` | Regular y Empleado |
@@ -170,6 +174,7 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
 | `POST /api/admin/fichos/:id/entregar` | Registrar entrega | Admin |
 | `GET /api/admin/entregas?fecha=` | Entregas del día | Admin |
 | `GET /api/admin/solicitudes`, `POST /api/admin/solicitudes/:id/{aprobar,rechazar}` | Solicitudes de cuenta | Admin |
+| `GET /api/admin/recuperaciones`, `POST /api/admin/recuperaciones/:id/{codigo,descartar}` | Ayuda para recuperar contraseñas | Admin |
 
 ## 10. Frontend
 
@@ -181,7 +186,8 @@ Todas las respuestas son JSON. Los errores tienen siempre la forma `{ "error": {
   - Mi Ficho: QR grande, token y el aviso "Ficho de uso único".
   - Mis reservas.
   - Estados de error: fuera de horario, plato agotado, pago rechazado, subsidio no disponible y sin conexión.
-- **Pantallas del administrador:** menú del día y porciones, catálogos, horarios por rol, validación de fichos (cámara + token manual, mostrando el pedido antes de confirmar) y entregas del día.
+  - Recuperar contraseña (`/recuperar`) y Ayuda (`/ayuda`, también sin sesión) con el Asistente FoodPass cuando hay sesión.
+- **Pantallas del administrador:** menú del día y porciones, catálogos, horarios por rol, validación de fichos (cámara + token manual, mostrando el pedido antes de confirmar), entregas del día, Solicitudes (cuentas y "Recuperar contraseña") y Ayuda.
 - **Usabilidad y accesibilidad (WCAG 2.2 AA):**
   - Lo seleccionado se distingue con borde + ícono + texto, nunca solo con color.
   - Los botones dicen lo que hacen ("Continuar al pago", no "Siguiente").
@@ -201,8 +207,8 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 | `npm run db:migrar` | Crea o actualiza las tablas | Fase 1 |
 | `npm run db:seed` | Carga los datos de ejemplo (solo desarrollo) | Fase 1 |
 | `npm run dev:backend` | API en `http://localhost:3000` | Fase 2 |
-| `npm test` | Pruebas del backend (110) | Fase 2 |
-| `npm run prueba:navegador` | Prueba completa en Chromium con Playwright (25 casos, `e2e/`). La primera vez: `npx playwright install chromium` | Fase 6 |
+| `npm test` | Pruebas del backend (128) | Fase 2 |
+| `npm run prueba:navegador` | Prueba completa en Chromium con Playwright (30 casos, `e2e/`). La primera vez: `npx playwright install chromium` | Fase 6 |
 | `npm run pago:webhook [-- RECHAZADO]` | Simula la respuesta del banco al pago PSE pendiente más reciente | Fase 5 |
 | `npm run dev:frontend` | Interfaz en `http://localhost:5173` | Fase 3 |
 | `npm run diseno:capturas` | Toma los mockups de `docs/diseno/mockups/` desde la aplicación real | Fase 7 |
@@ -222,8 +228,9 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 | 5. Cierre | README final, revisión de seguridad y coherencia con UML (`docs/cambios-uml.md`) | Completa |
 | 6. Diseño de Figma y registro | Pantallas con el prototipo de Figma, Crear Cuenta con verificación de rol (Solicitudes) y prueba en el navegador guardada en `e2e/` | Completa |
 | 7. Cierre de pendientes | Logo y logos de pago del prototipo, mockups tomados de la app, adaptador Wompi opcional, registro en `docs/cambios-uml.md` | Completa (falta el PDF y los `.drawio`) |
+| 8. Soporte | Recuperar contraseña (correo o administrador), página de Ayuda y asistente sin IA externa (`docs/cambios-uml.md`, sección 6) | Completa |
 
-**Verificación:** las 110 pruebas del backend pasan, y `npm run prueba:navegador` pasa sus 25 casos: los tres medios de pago, rechazo, PSE pendiente con webhook (aprobado y rechazado), subsidio y subsidio vencido, fuera de horario y hora límite, plato agotado, sin conexión, cancelación con reembolso, registro con aprobación y rechazo, validación manual y con cámara simulada, entregas y acceso denegado al panel. Cada pantalla se revisa con axe-core (WCAG 2.2 AA) y sin errores de consola. **Antes de dar por terminado un cambio del frontend, correr esa prueba.** En el contenedor de Claude el Chromium instalado no coincide con la versión de Playwright: usar `NAVEGADOR_RUTA=/opt/pw-browsers/chromium npm run prueba:navegador`.
+**Verificación:** las 128 pruebas del backend pasan, y `npm run prueba:navegador` pasa sus 30 casos: los tres medios de pago, rechazo, PSE pendiente con webhook (aprobado y rechazado), subsidio y subsidio vencido, fuera de horario y hora límite, plato agotado, sin conexión, cancelación con reembolso, registro con aprobación y rechazo, recuperación de contraseña (correo y administrador), Ayuda y asistente, validación manual y con cámara simulada, entregas y acceso denegado al panel. Cada pantalla se revisa con axe-core (WCAG 2.2 AA) y sin errores de consola. **Antes de dar por terminado un cambio del frontend, correr esa prueba.** En el contenedor de Claude el Chromium instalado no coincide con la versión de Playwright: usar `NAVEGADOR_RUTA=/opt/pw-browsers/chromium npm run prueba:navegador`.
 
 **Pruebas mínimas (Fase 2):**
 - Reserva fuera de horario rechazada.
@@ -268,6 +275,8 @@ Se ejecutan desde la raíz del proyecto. Funcionan a medida que avanzan las fase
 - **Reembolso:** con el sandbox es simulado; solo cambia el estado del pago a REEMBOLSADO. Con Wompi también se marca REEMBOLSADO, la persona ve "La cafetería te devolverá el dinero" y la devolución se hace a mano desde el panel de Wompi.
 - **Registro de cuentas (decisión del usuario):** cada persona crea su cuenta con correo `@udes.edu.co`, contraseña y rol. El estudiante regular queda activo; subsidiado, empleado y administrador quedan en revisión hasta que un administrador los aprueba en Solicitudes (o los rechaza con un motivo).
 - **Pago que llega tarde:** si el banco confirma un pago después de la hora límite, se reembolsa (simulado) en vez de confirmar el almuerzo.
+- **Recuperar contraseña (fase 8):** código de 6 dígitos con bcrypt en columnas de `usuario` (se mantienen 16 tablas). Dos caminos: por correo (SMTP opcional en `.env`; sin SMTP, en desarrollo sale en la consola de la API; vence en 15 min) o con ayuda del administrador, que verifica el documento en persona y genera el código en Solicitudes (vence en 60 min). 5 intentos por código, un solo uso.
+- **Asistente (decisión del usuario): sin IA externa.** Responde con las preguntas frecuentes (búsqueda por palabras clave) y con datos reales del día (menú, hora límite, mi reserva). Vive en la página de Ayuda, solo con sesión.
 - **Prueba en el navegador:** `e2e/servidor-e2e.mjs` arranca la API con reloj fijo sobre la base de pruebas y agrega rutas `/__e2e/*` que solo existen ahí (nunca en `server.js`).
 
 ## 14. Entorno de trabajo de Claude
