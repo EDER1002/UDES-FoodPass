@@ -5,12 +5,15 @@ import pg from 'pg';
 pg.types.setTypeParser(pg.types.builtins.DATE, (valor) => valor);
 
 export function crearPool(urlConexion) {
+  // En Vercel cada función es un proceso corto: conviene un pool pequeño y,
+  // si se usa el pooler de Neon, no enviar `options` (no lo soporta).
+  const esPooler = /-pooler\./.test(urlConexion);
   return new pg.Pool({
     connectionString: urlConexion,
-    max: 20,
+    max: Number(process.env.PG_POOL_MAX) || (process.env.VERCEL ? 3 : 20),
     // Si el pool se agota, falla con un error en vez de esperar para siempre.
     connectionTimeoutMillis: 5000,
-    options: '-c timezone=America/Bogota',
+    ...(esPooler ? {} : { options: '-c timezone=America/Bogota' }),
   });
 }
 
