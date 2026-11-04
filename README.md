@@ -55,6 +55,7 @@ cp .env.example .env
 
 Abre `.env` con un editor de texto y cambia cada `cambia_esto`:
 - `POSTGRES_PASSWORD`: inventa una contraseña y escríbela también dentro de `DATABASE_URL` y `DATABASE_URL_TEST`.
+- `POSTGRES_PORT`: si el puerto 5432 ya está ocupado, usa otro (por ejemplo `5433`) y cambia el puerto en `DATABASE_URL` y `DATABASE_URL_TEST` para que coincida.
 - `JWT_SECRETO`: al menos 32 caracteres cualesquiera.
 - `WEBHOOK_SECRETO`: al menos 16 caracteres cualesquiera.
 
