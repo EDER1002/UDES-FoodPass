@@ -1,7 +1,7 @@
-import { crearApp } from '../src/app.js';
-import { cargarConfig } from '../src/config.js';
-import { crearPool } from '../src/db/conexion.js';
-import { crearPasarela } from '../src/modules/reservas-pagos/pagos/pasarela/index.js';
+import { crearApp } from './src/app.js';
+import { cargarConfig } from './src/config.js';
+import { crearPool } from './src/db/conexion.js';
+import { crearPasarela } from './src/modules/reservas-pagos/pagos/pasarela/index.js';
 
 const config = cargarConfig();
 const pool = crearPool(config.urlBaseDeDatos);
